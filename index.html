@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Under Construction | Coming Soon</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&family=Poppins:wght@500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Custom Stylesheet -->
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+  <div class="main-area">
+
+    <!-- Left Section: Photo Background with Countdown Overlay -->
+    <section class="left-section">
+      <div class="countdown-wrapper">
+        <div class="countdown-title">Website Launch In</div>
+        <div class="countdown-timer">
+          <div class="time-sec">
+            <span id="days" class="main-time">00</span>
+            <span class="time-label">Days</span>
+          </div>
+          <div class="time-sec">
+            <span id="hours" class="main-time">00</span>
+            <span class="time-label">Hours</span>
+          </div>
+          <div class="time-sec">
+            <span id="minutes" class="main-time">00</span>
+            <span class="time-label">Mins</span>
+          </div>
+          <div class="time-sec">
+            <span id="seconds" class="main-time">00</span>
+            <span class="time-label">Secs</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Right Section: Branding, Announcement & Email Subscription -->
+    <section class="right-section">
+      
+      <!-- Brand Logo Header -->
+      <a class="brand-logo" href="#">
+        PORTFOLIO <span class="logo-dot"></span>
+      </a>
+
+      <!-- Main Content Block -->
+      <div class="main-content">
+        <span class="badge">Coming Soon</span>
+        <h1 class="title">Under <b>Construction</b></h1>
+        <p class="desc">
+          Our website is currently undergoing scheduled maintenance and updates. We will be back online shortly with a fresh experience. Thank you for your patience!
+        </p>
+
+        <!-- Early Access Email Form -->
+        <div class="email-input-area">
+          <form id="subscribe-form" class="email-form" method="post">
+            <input 
+              id="email-input" 
+              class="email-input" 
+              name="email" 
+              type="email" 
+              placeholder="Enter your email address..." 
+              required 
+            />
+            <button class="submit-btn" type="submit">NOTIFY ME</button>
+          </form>
+          <div id="form-message" class="form-message"></div>
+        </div>
+
+        <p class="post-desc">Sign up today to receive early notification when we launch.</p>
+      </div>
+
+      <!-- Simple Footer -->
+      <div class="footer-text">
+        &copy; 2026 All Rights Reserved.
+      </div>
+
+    </section>
+
+  </div>
+
+  <!-- Countdown & Interaction Logic -->
+  <script src="js/countdown.js"></script>
+
+</body>
+</html>
