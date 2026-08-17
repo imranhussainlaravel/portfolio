@@ -4,14 +4,14 @@
    ==================================================== */
 
 :root {
-  --bg-dark: #0A0B0E;
+  --bg-dark: #000000;
   --bg-card: #FFFFFF;
   --accent-cyan: #00D2FF;
   --text-main: #FFFFFF;
   --text-muted: #94A3B8;
   --text-dark: #0F172A;
-  --input-bg: #14171F;
-  --input-border: #242A36;
+  --input-bg: #111318;
+  --input-border: #222630;
   --hero-bg-url: url('../images/hero.jpg'); /* Full length hero photo */
 }
 
@@ -39,6 +39,7 @@ html, body {
   min-height: 100vh;
   width: 100vw;
   position: relative;
+  background-color: var(--bg-dark);
 }
 
 /* Left Section: Full-Height & Full-Length B&W Hero Photo */
@@ -46,11 +47,12 @@ html, body {
   width: 50%;
   min-height: 100vh;
   position: relative;
-  background-image: linear-gradient(180deg, rgba(10, 11, 14, 0.4) 0%, rgba(10, 11, 14, 0.88) 100%), var(--hero-bg-url);
+  background-color: var(--bg-dark);
+  background-image: linear-gradient(180deg, rgba(0, 0, 0, 0.2) 0%, rgba(0, 0, 0, 0.85) 100%), var(--hero-bg-url);
   background-size: cover;
   background-position: center top;
   background-repeat: no-repeat;
-  filter: grayscale(100%) contrast(1.2) brightness(0.65);
+  filter: grayscale(100%) contrast(1.2) brightness(0.7);
   display: flex;
   align-items: flex-end;
   justify-content: center;
