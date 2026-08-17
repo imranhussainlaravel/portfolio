@@ -4,8 +4,8 @@
    ==================================================== */
 
 :root {
-  --bg-dark: #12151B;
-  --bg-card: rgba(255, 255, 255, 0.96);
+  --bg-dark: #0A0B0E;
+  --bg-card: #FFFFFF;
   --accent-cyan: #00D2FF;
   --accent-blue: #2563EB;
   --accent-hover: #00B2FF;
@@ -13,8 +13,8 @@
   --text-main: #FFFFFF;
   --text-muted: #94A3B8;
   --text-dark: #0F172A;
-  --input-bg: #1A1F29;
-  --input-border: #2B3342;
+  --input-bg: #14171F;
+  --input-border: #242A36;
   --hero-bg-url: url('../images/hero.jpg'); /* Direct local image file */
 }
 
@@ -50,31 +50,50 @@ html, body {
   min-height: 100vh;
   position: relative;
   background-color: var(--bg-dark);
-  background-image: 
-    linear-gradient(90deg, rgba(18, 21, 27, 0) 50%, #12151B 95%),
-    linear-gradient(180deg, rgba(18, 21, 27, 0.2) 0%, rgba(18, 21, 27, 0.88) 100%),
-    var(--hero-bg-url);
-  background-size: cover, cover, auto 82%;
-  background-position: center, center, center 20px;
-  background-repeat: no-repeat;
+  background: radial-gradient(circle at 50% 38%, rgba(255, 255, 255, 0.05) 0%, rgba(10, 11, 14, 0) 65%), var(--bg-dark);
   display: flex;
-  align-items: flex-end;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 40px 30px 30px;
+  overflow: hidden;
+}
+
+.hero-img-container {
+  flex: 1;
+  width: 100%;
+  max-width: 500px;
+  display: flex;
+  align-items: center;
   justify-content: center;
-  padding: 40px 20px;
+  position: relative;
+  z-index: 1;
+}
+
+.hero-img {
+  max-height: 58vh;
+  width: auto;
+  max-width: 100%;
+  object-fit: contain;
+  mix-blend-mode: multiply;
+  filter: grayscale(100%) contrast(1.15) brightness(1.02);
+  transition: transform 0.3s ease, filter 0.3s ease;
 }
 
 /* Countdown Overlay Wrapper */
 .countdown-wrapper {
   width: 100%;
-  max-width: 600px;
+  max-width: 540px;
   text-align: center;
-  background: rgba(11, 15, 23, 0.65);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  padding: 30px 20px;
+  background: rgba(18, 22, 30, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  padding: 24px 20px;
   border-radius: 20px;
-  border: 1px solid rgba(0, 210, 255, 0.2);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6), 0 0 30px rgba(0, 210, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.7);
+  z-index: 2;
+  margin-top: 15px;
 }
 
 .countdown-title {
@@ -82,7 +101,7 @@ html, body {
   font-size: 0.85em;
   text-transform: uppercase;
   letter-spacing: 2.5px;
-  color: #CBD5E1;
+  color: #94A3B8;
   margin-bottom: 20px;
   font-weight: 600;
 }
@@ -95,7 +114,7 @@ html, body {
   flex-wrap: wrap;
 }
 
-/* Individual Timer Circle/Card */
+/* Individual Timer Circle/Card (Monochrome Card) */
 .time-sec {
   background: var(--bg-card);
   width: 100px;
@@ -105,20 +124,20 @@ html, body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 8px 24px rgba(0, 210, 255, 0.2), 0 0 0 4px rgba(0, 210, 255, 0.3);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4), 0 0 0 4px rgba(255, 255, 255, 0.15);
   transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
 .time-sec:hover {
   transform: translateY(-5px);
-  box-shadow: 0 12px 30px rgba(0, 210, 255, 0.4), 0 0 0 6px rgba(0, 210, 255, 0.5);
+  box-shadow: 0 12px 30px rgba(0, 210, 255, 0.3), 0 0 0 5px rgba(0, 210, 255, 0.4);
 }
 
 .main-time {
   font-family: 'Poppins', sans-serif;
   font-size: 2.2rem;
   font-weight: 700;
-  color: #0284C7;
+  color: #0F172A;
   line-height: 1;
 }
 
