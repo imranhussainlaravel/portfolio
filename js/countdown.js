@@ -52,7 +52,8 @@ document.addEventListener('DOMContentLoaded', () => {
   if (emailForm) {
     emailForm.addEventListener('submit', async (e) => {
       e.preventDefault();
-      const email = emailInput.value.trim();
+      const rawEmail = emailInput.value.trim();
+      const email = rawEmail.toLowerCase(); // Always force lowercase email
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
       if (!emailRegex.test(email)) {
@@ -87,8 +88,14 @@ document.addEventListener('DOMContentLoaded', () => {
           formMsg.className = 'form-message error';
         }
       } catch (err) {
-        // Fallback for local preview without PHP server running
-        formMsg.textContent = 'Thank you! Your email has been registered.';
+        // LocalStorage fallback when testing without active PHP server
+        try {
+          const stored = JSON.parse(localStorage.getItem('portfolio_subscribers') || '[]');
+          stored.push({ email: email, date: new Date().toISOString() });
+          localStorage.setItem('portfolio_subscribers', JSON.stringify(stored));
+        } catch (e) {}
+
+        formMsg.textContent = 'Thank you! Your email has been registered for early access.';
         formMsg.className = 'form-message success';
         emailInput.value = '';
       } finally {

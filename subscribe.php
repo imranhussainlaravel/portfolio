@@ -12,13 +12,13 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 // Get POST email (works for both standard form POST and FormData AJAX)
-$email = isset($_POST['email']) ? trim($_POST['email']) : '';
+$email = isset($_POST['email']) ? strtolower(trim($_POST['email'])) : '';
 
 if (empty($email)) {
     // Fallback for raw JSON payload
     $rawInput = json_decode(file_get_contents('php://input'), true);
     if (isset($rawInput['email'])) {
-        $email = trim($rawInput['email']);
+        $email = strtolower(trim($rawInput['email']));
     }
 }
 
