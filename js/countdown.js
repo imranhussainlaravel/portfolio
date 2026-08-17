@@ -3,15 +3,15 @@
    ==================================================== */
 
 document.addEventListener('DOMContentLoaded', () => {
-  // Fixed Target Launch Date (Set to 7 Days from launch initialization)
-  // You can also change this string directly, e.g., '2026-08-25T00:00:00'
-  let storedTarget = localStorage.getItem('launch_target_date');
+  // Fixed Target Launch Date (Set to 5 Days from launch initialization)
+  // You can also change this string directly, e.g., '2026-08-23T00:00:00'
+  let storedTarget = localStorage.getItem('launch_target_date_5d');
   
   if (!storedTarget) {
     const fixedTarget = new Date();
-    fixedTarget.setDate(fixedTarget.getDate() + 7);
+    fixedTarget.setDate(fixedTarget.getDate() + 5);
     storedTarget = fixedTarget.toISOString();
-    localStorage.setItem('launch_target_date', storedTarget);
+    localStorage.setItem('launch_target_date_5d', storedTarget);
   }
 
   const targetDate = new Date(storedTarget);

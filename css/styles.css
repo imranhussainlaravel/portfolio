@@ -4,7 +4,7 @@
    ==================================================== */
 
 :root {
-  --bg-dark: #0B0F17;
+  --bg-dark: #12151B;
   --bg-card: rgba(255, 255, 255, 0.96);
   --accent-cyan: #00D2FF;
   --accent-blue: #2563EB;
@@ -13,8 +13,8 @@
   --text-main: #FFFFFF;
   --text-muted: #94A3B8;
   --text-dark: #0F172A;
-  --input-bg: #161C26;
-  --input-border: #232D3F;
+  --input-bg: #1A1F29;
+  --input-border: #2B3342;
   --hero-bg-url: url('../images/hero.jpg'); /* Direct local image file */
 }
 
@@ -49,9 +49,13 @@ html, body {
   width: 50%;
   min-height: 100vh;
   position: relative;
-  background-image: linear-gradient(180deg, rgba(11, 15, 23, 0.15) 0%, rgba(11, 15, 23, 0.75) 100%), var(--hero-bg-url);
-  background-size: cover;
-  background-position: center 15%;
+  background-color: var(--bg-dark);
+  background-image: 
+    linear-gradient(90deg, rgba(18, 21, 27, 0) 50%, #12151B 95%),
+    linear-gradient(180deg, rgba(18, 21, 27, 0.2) 0%, rgba(18, 21, 27, 0.88) 100%),
+    var(--hero-bg-url);
+  background-size: cover, cover, auto 82%;
+  background-position: center, center, center 20px;
   background-repeat: no-repeat;
   display: flex;
   align-items: flex-end;
