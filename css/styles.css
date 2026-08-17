@@ -1,21 +1,19 @@
 /* ====================================================
    Coming Soon Page - Master Stylesheet
-   Executive Cyan Blue Theme (Masculine & Modern)
+   Colorlib CS 04 Theme (Full-Length B&W Hero + Pink Shift Accent)
    ==================================================== */
 
 :root {
-  --bg-dark: #0A0B0E;
-  --bg-card: #FFFFFF;
-  --accent-cyan: #00D2FF;
-  --accent-blue: #2563EB;
-  --accent-hover: #00B2FF;
-  --accent-rgb: 0, 210, 255;
+  --bg-dark: #0C0D0F;
+  --bg-card: rgba(255, 255, 255, 0.96);
+  --accent-pink: #F84982;
+  --accent-pink-hover: #E40B52;
   --text-main: #FFFFFF;
-  --text-muted: #94A3B8;
-  --text-dark: #0F172A;
-  --input-bg: #14171F;
-  --input-border: #242A36;
-  --hero-bg-url: url('../images/hero.jpg'); /* Direct local image file */
+  --text-muted: #A0A5B1;
+  --text-dark: #1A1A1A;
+  --input-bg: #18191D;
+  --input-border: #2A2C33;
+  --hero-bg-url: url('../images/hero.jpg'); /* Full length hero photo */
 }
 
 /* Reset & Basic Styles */
@@ -44,56 +42,34 @@ html, body {
   position: relative;
 }
 
-/* Left Section: Hero Photo & Countdown Overlay */
+/* Left Section: Full-Height & Full-Length B&W Hero Photo */
 .left-section {
   width: 50%;
   min-height: 100vh;
   position: relative;
-  background-color: var(--bg-dark);
-  background: radial-gradient(circle at 50% 38%, rgba(255, 255, 255, 0.05) 0%, rgba(10, 11, 14, 0) 65%), var(--bg-dark);
+  background-image: linear-gradient(180deg, rgba(12, 13, 15, 0.4) 0%, rgba(12, 13, 15, 0.88) 100%), var(--hero-bg-url);
+  background-size: cover;
+  background-position: center top;
+  background-repeat: no-repeat;
+  filter: grayscale(100%) contrast(1.22) brightness(0.68);
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: space-between;
-  padding: 40px 30px 30px;
-  overflow: hidden;
-}
-
-.hero-img-container {
-  flex: 1;
-  width: 100%;
-  max-width: 500px;
-  display: flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: center;
-  position: relative;
-  z-index: 1;
-}
-
-.hero-img {
-  max-height: 58vh;
-  width: auto;
-  max-width: 100%;
-  object-fit: contain;
-  mix-blend-mode: multiply;
-  filter: grayscale(100%) contrast(1.15) brightness(1.02);
-  transition: transform 0.3s ease, filter 0.3s ease;
+  padding: 40px 20px;
 }
 
 /* Countdown Overlay Wrapper */
 .countdown-wrapper {
   width: 100%;
-  max-width: 540px;
+  max-width: 560px;
   text-align: center;
-  background: rgba(18, 22, 30, 0.85);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  padding: 24px 20px;
+  background: rgba(12, 13, 15, 0.65);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  padding: 28px 20px;
   border-radius: 20px;
   border: 1px solid rgba(255, 255, 255, 0.12);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.7);
-  z-index: 2;
-  margin-top: 15px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
 }
 
 .countdown-title {
@@ -101,7 +77,7 @@ html, body {
   font-size: 0.85em;
   text-transform: uppercase;
   letter-spacing: 2.5px;
-  color: #94A3B8;
+  color: #CBD5E1;
   margin-bottom: 20px;
   font-weight: 600;
 }
@@ -114,7 +90,7 @@ html, body {
   flex-wrap: wrap;
 }
 
-/* Individual Timer Circle/Card (Monochrome Card) */
+/* Individual Timer Circle/Card */
 .time-sec {
   background: var(--bg-card);
   width: 100px;
@@ -124,20 +100,20 @@ html, body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4), 0 0 0 4px rgba(255, 255, 255, 0.15);
+  box-shadow: 0 8px 24px rgba(248, 73, 130, 0.25), 0 0 0 5px rgba(255, 255, 255, 0.15);
   transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
 .time-sec:hover {
   transform: translateY(-5px);
-  box-shadow: 0 12px 30px rgba(0, 210, 255, 0.3), 0 0 0 5px rgba(0, 210, 255, 0.4);
+  box-shadow: 0 12px 30px rgba(248, 73, 130, 0.4), 0 0 0 6px rgba(248, 73, 130, 0.3);
 }
 
 .main-time {
   font-family: 'Poppins', sans-serif;
   font-size: 2.2rem;
   font-weight: 700;
-  color: #0F172A;
+  color: var(--accent-pink);
   line-height: 1;
 }
 
@@ -178,10 +154,10 @@ html, body {
 .brand-logo .logo-dot {
   width: 10px;
   height: 10px;
-  background-color: var(--accent-cyan);
+  background-color: var(--accent-pink);
   border-radius: 50%;
   display: inline-block;
-  box-shadow: 0 0 10px var(--accent-cyan);
+  box-shadow: 0 0 10px var(--accent-pink);
 }
 
 /* Center Content */
@@ -193,9 +169,9 @@ html, body {
 .main-content .badge {
   display: inline-block;
   padding: 6px 16px;
-  background: rgba(0, 210, 255, 0.12);
-  border: 1px solid rgba(0, 210, 255, 0.3);
-  color: var(--accent-cyan);
+  background: rgba(248, 73, 130, 0.12);
+  border: 1px solid rgba(248, 73, 130, 0.3);
+  color: var(--accent-pink);
   border-radius: 30px;
   font-size: 0.82rem;
   font-weight: 600;
@@ -214,10 +190,7 @@ html, body {
 }
 
 .main-content .title b {
-  color: var(--accent-cyan);
-  background: linear-gradient(135deg, #00D2FF 0%, #3B82F6 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: var(--accent-pink);
 }
 
 .main-content .desc {
@@ -255,12 +228,12 @@ html, body {
 }
 
 .email-input::placeholder {
-  color: #64748B;
+  color: #6C727F;
 }
 
 .email-input:focus {
-  border-color: var(--accent-cyan);
-  box-shadow: 0 0 0 3px rgba(0, 210, 255, 0.2);
+  border-color: var(--accent-pink);
+  box-shadow: 0 0 0 3px rgba(248, 73, 130, 0.15);
 }
 
 .submit-btn {
@@ -269,7 +242,7 @@ html, body {
   top: 5px;
   bottom: 5px;
   padding: 0 24px;
-  background: linear-gradient(135deg, #00D2FF 0%, #2563EB 100%);
+  background-color: var(--accent-pink);
   color: #FFFFFF;
   border: none;
   border-radius: 6px;
@@ -278,34 +251,19 @@ html, body {
   font-weight: 700;
   letter-spacing: 1px;
   cursor: pointer;
-  transition: opacity 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
-  box-shadow: 0 4px 14px rgba(0, 210, 255, 0.3);
+  transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+  box-shadow: 0 4px 14px rgba(248, 73, 130, 0.3);
 }
 
 .submit-btn:hover {
-  opacity: 0.92;
+  background-color: var(--accent-pink-hover);
   transform: scale(1.02);
-  box-shadow: 0 6px 20px rgba(0, 210, 255, 0.45);
+  box-shadow: 0 6px 20px rgba(248, 73, 130, 0.45);
 }
 
 .post-desc {
   font-size: 0.88rem;
-  color: #64748B;
-}
-
-/* Notification Toast / Alert message */
-.form-message {
-  margin-top: 12px;
-  font-size: 0.9rem;
-  display: none;
-}
-.form-message.success {
-  display: block;
-  color: #10B981;
-}
-.form-message.error {
-  display: block;
-  color: #EF4444;
+  color: #717784;
 }
 
 /* Contact Info Badges */
@@ -327,30 +285,45 @@ html, body {
   text-decoration: none;
   transition: all 0.3s ease;
   padding: 10px 16px;
-  background: rgba(22, 28, 38, 0.8);
+  background: rgba(24, 25, 29, 0.8);
   border: 1px solid var(--input-border);
   border-radius: 8px;
 }
 
 .contact-item:hover {
-  color: var(--accent-cyan);
-  border-color: var(--accent-cyan);
-  background: rgba(0, 210, 255, 0.08);
+  color: var(--accent-pink);
+  border-color: var(--accent-pink);
+  background: rgba(248, 73, 130, 0.08);
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 210, 255, 0.15);
+  box-shadow: 0 4px 12px rgba(248, 73, 130, 0.15);
 }
 
 .contact-icon {
   width: 18px;
   height: 18px;
-  stroke: var(--accent-cyan);
+  stroke: var(--accent-pink);
   flex-shrink: 0;
+}
+
+/* Notification Toast / Alert message */
+.form-message {
+  margin-top: 12px;
+  font-size: 0.9rem;
+  display: none;
+}
+.form-message.success {
+  display: block;
+  color: #10B981;
+}
+.form-message.error {
+  display: block;
+  color: #EF4444;
 }
 
 /* Minimal Footer */
 .footer-text {
   font-size: 0.85rem;
-  color: #475569;
+  color: #525866;
   margin-top: 40px;
 }
 
