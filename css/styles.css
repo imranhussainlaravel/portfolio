@@ -1,18 +1,20 @@
 /* ====================================================
    Coming Soon Page - Master Stylesheet
-   Inspired by Colorlib CS 04 (Customized)
+   Executive Cyan Blue Theme (Masculine & Modern)
    ==================================================== */
 
 :root {
-  --bg-dark: #0C0D0F;
-  --bg-card: rgba(255, 255, 255, 0.95);
-  --accent-pink: #F84982;
-  --accent-pink-hover: #E40B52;
+  --bg-dark: #0B0F17;
+  --bg-card: rgba(255, 255, 255, 0.96);
+  --accent-cyan: #00D2FF;
+  --accent-blue: #2563EB;
+  --accent-hover: #00B2FF;
+  --accent-rgb: 0, 210, 255;
   --text-main: #FFFFFF;
-  --text-muted: #A0A5B1;
-  --text-dark: #1A1A1A;
-  --input-bg: #18191D;
-  --input-border: #2A2C33;
+  --text-muted: #94A3B8;
+  --text-dark: #0F172A;
+  --input-bg: #161C26;
+  --input-border: #232D3F;
   --hero-bg-url: url('../images/hero.jpg'); /* Direct local image file */
 }
 
@@ -47,9 +49,9 @@ html, body {
   width: 50%;
   min-height: 100vh;
   position: relative;
-  background-image: linear-gradient(180deg, rgba(12, 13, 15, 0.2) 0%, rgba(12, 13, 15, 0.65) 100%), var(--hero-bg-url);
+  background-image: linear-gradient(180deg, rgba(11, 15, 23, 0.15) 0%, rgba(11, 15, 23, 0.75) 100%), var(--hero-bg-url);
   background-size: cover;
-  background-position: center top;
+  background-position: center 15%;
   background-repeat: no-repeat;
   display: flex;
   align-items: flex-end;
@@ -62,21 +64,21 @@ html, body {
   width: 100%;
   max-width: 600px;
   text-align: center;
-  background: rgba(12, 13, 15, 0.45);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  background: rgba(11, 15, 23, 0.65);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
   padding: 30px 20px;
   border-radius: 20px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(0, 210, 255, 0.2);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6), 0 0 30px rgba(0, 210, 255, 0.1);
 }
 
 .countdown-title {
   font-family: 'Poppins', sans-serif;
   font-size: 0.85em;
   text-transform: uppercase;
-  letter-spacing: 2px;
-  color: #D1D5DB;
+  letter-spacing: 2.5px;
+  color: #CBD5E1;
   margin-bottom: 20px;
   font-weight: 600;
 }
@@ -99,20 +101,20 @@ html, body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 8px 24px rgba(248, 73, 130, 0.25), 0 0 0 5px rgba(255, 255, 255, 0.15);
+  box-shadow: 0 8px 24px rgba(0, 210, 255, 0.2), 0 0 0 4px rgba(0, 210, 255, 0.3);
   transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
 .time-sec:hover {
   transform: translateY(-5px);
-  box-shadow: 0 12px 30px rgba(248, 73, 130, 0.4), 0 0 0 6px rgba(248, 73, 130, 0.3);
+  box-shadow: 0 12px 30px rgba(0, 210, 255, 0.4), 0 0 0 6px rgba(0, 210, 255, 0.5);
 }
 
 .main-time {
   font-family: 'Poppins', sans-serif;
   font-size: 2.2rem;
   font-weight: 700;
-  color: var(--accent-pink);
+  color: #0284C7;
   line-height: 1;
 }
 
@@ -153,9 +155,10 @@ html, body {
 .brand-logo .logo-dot {
   width: 10px;
   height: 10px;
-  background-color: var(--accent-pink);
+  background-color: var(--accent-cyan);
   border-radius: 50%;
   display: inline-block;
+  box-shadow: 0 0 10px var(--accent-cyan);
 }
 
 /* Center Content */
@@ -167,9 +170,9 @@ html, body {
 .main-content .badge {
   display: inline-block;
   padding: 6px 16px;
-  background: rgba(248, 73, 130, 0.12);
-  border: 1px solid rgba(248, 73, 130, 0.3);
-  color: var(--accent-pink);
+  background: rgba(0, 210, 255, 0.12);
+  border: 1px solid rgba(0, 210, 255, 0.3);
+  color: var(--accent-cyan);
   border-radius: 30px;
   font-size: 0.82rem;
   font-weight: 600;
@@ -188,7 +191,10 @@ html, body {
 }
 
 .main-content .title b {
-  color: var(--accent-pink);
+  color: var(--accent-cyan);
+  background: linear-gradient(135deg, #00D2FF 0%, #3B82F6 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 .main-content .desc {
@@ -226,12 +232,12 @@ html, body {
 }
 
 .email-input::placeholder {
-  color: #6C727F;
+  color: #64748B;
 }
 
 .email-input:focus {
-  border-color: var(--accent-pink);
-  box-shadow: 0 0 0 3px rgba(248, 73, 130, 0.15);
+  border-color: var(--accent-cyan);
+  box-shadow: 0 0 0 3px rgba(0, 210, 255, 0.2);
 }
 
 .submit-btn {
@@ -240,7 +246,7 @@ html, body {
   top: 5px;
   bottom: 5px;
   padding: 0 24px;
-  background-color: var(--accent-pink);
+  background: linear-gradient(135deg, #00D2FF 0%, #2563EB 100%);
   color: #FFFFFF;
   border: none;
   border-radius: 6px;
@@ -249,17 +255,19 @@ html, body {
   font-weight: 700;
   letter-spacing: 1px;
   cursor: pointer;
-  transition: background-color 0.3s ease, transform 0.2s ease;
+  transition: opacity 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+  box-shadow: 0 4px 14px rgba(0, 210, 255, 0.3);
 }
 
 .submit-btn:hover {
-  background-color: var(--accent-pink-hover);
+  opacity: 0.92;
   transform: scale(1.02);
+  box-shadow: 0 6px 20px rgba(0, 210, 255, 0.45);
 }
 
 .post-desc {
   font-size: 0.88rem;
-  color: #717784;
+  color: #64748B;
 }
 
 /* Notification Toast / Alert message */
@@ -270,17 +278,56 @@ html, body {
 }
 .form-message.success {
   display: block;
-  color: #2ECC71;
+  color: #10B981;
 }
 .form-message.error {
   display: block;
-  color: #E74C3C;
+  color: #EF4444;
+}
+
+/* Contact Info Badges */
+.contact-info {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 28px;
+  flex-wrap: wrap;
+}
+
+.contact-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: #CBD5E1;
+  font-size: 0.9rem;
+  font-weight: 500;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  padding: 10px 16px;
+  background: rgba(22, 28, 38, 0.8);
+  border: 1px solid var(--input-border);
+  border-radius: 8px;
+}
+
+.contact-item:hover {
+  color: var(--accent-cyan);
+  border-color: var(--accent-cyan);
+  background: rgba(0, 210, 255, 0.08);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 210, 255, 0.15);
+}
+
+.contact-icon {
+  width: 18px;
+  height: 18px;
+  stroke: var(--accent-cyan);
+  flex-shrink: 0;
 }
 
 /* Minimal Footer */
 .footer-text {
   font-size: 0.85rem;
-  color: #525866;
+  color: #475569;
   margin-top: 40px;
 }
 

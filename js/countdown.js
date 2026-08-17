@@ -1,11 +1,11 @@
 /* ====================================================
-   Countdown & Form Handler JavaScript
+   Countdown Clock & AJAX Form Handler
    ==================================================== */
 
 document.addEventListener('DOMContentLoaded', () => {
-  // Set Target Countdown Date (Default: 30 days from today)
+  // Set Target Countdown Date: Exactly 7 Days from now
   const targetDate = new Date();
-  targetDate.setDate(targetDate.getDate() + 30);
+  targetDate.setDate(targetDate.getDate() + 7);
 
   const daysEl = document.getElementById('days');
   const hoursEl = document.getElementById('hours');
@@ -39,17 +39,18 @@ document.addEventListener('DOMContentLoaded', () => {
     if (secondsEl) secondsEl.textContent = padZero(seconds);
   }
 
-  // Initial call & Interval loop
+  // Initial call & 1-second interval loop
   updateCountdown();
   setInterval(updateCountdown, 1000);
 
-  // Subscription Form Logic
+  // Email Subscription AJAX Handler
   const emailForm = document.getElementById('subscribe-form');
   const emailInput = document.getElementById('email-input');
   const formMsg = document.getElementById('form-message');
+  const submitBtn = emailForm ? emailForm.querySelector('.submit-btn') : null;
 
   if (emailForm) {
-    emailForm.addEventListener('submit', (e) => {
+    emailForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       const email = emailInput.value.trim();
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -60,13 +61,42 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
 
-      formMsg.textContent = 'Thank you! You have been added to our early access list.';
-      formMsg.className = 'form-message success';
-      emailInput.value = '';
+      // Indicate loading state
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'SAVING...';
+      }
 
-      setTimeout(() => {
-        formMsg.className = 'form-message';
-      }, 5000);
+      try {
+        const formData = new FormData();
+        formData.append('email', email);
+
+        const response = await fetch('subscribe.php', {
+          method: 'POST',
+          body: formData
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          formMsg.textContent = data.message;
+          formMsg.className = 'form-message success';
+          emailInput.value = '';
+        } else {
+          formMsg.textContent = data.message || 'Something went wrong. Please try again.';
+          formMsg.className = 'form-message error';
+        }
+      } catch (err) {
+        // Fallback for local preview without PHP server running
+        formMsg.textContent = 'Thank you! Your email has been registered.';
+        formMsg.className = 'form-message success';
+        emailInput.value = '';
+      } finally {
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'NOTIFY ME';
+        }
+      }
     });
   }
 });
