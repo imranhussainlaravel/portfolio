@@ -3,9 +3,18 @@
    ==================================================== */
 
 document.addEventListener('DOMContentLoaded', () => {
-  // Set Target Countdown Date: Exactly 7 Days from now
-  const targetDate = new Date();
-  targetDate.setDate(targetDate.getDate() + 7);
+  // Fixed Target Launch Date (Set to 7 Days from launch initialization)
+  // You can also change this string directly, e.g., '2026-08-25T00:00:00'
+  let storedTarget = localStorage.getItem('launch_target_date');
+  
+  if (!storedTarget) {
+    const fixedTarget = new Date();
+    fixedTarget.setDate(fixedTarget.getDate() + 7);
+    storedTarget = fixedTarget.toISOString();
+    localStorage.setItem('launch_target_date', storedTarget);
+  }
+
+  const targetDate = new Date(storedTarget);
 
   const daysEl = document.getElementById('days');
   const hoursEl = document.getElementById('hours');
