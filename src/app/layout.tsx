@@ -155,6 +155,10 @@ export default async function RootLayout({
               }}
             />
           </RevealFx>
+          {/* Ambient glow. Decorative only, so hidden from assistive tech.
+              Sits before the content in the DOM so later position:relative
+              siblings paint above it without needing a z-index fight. */}
+          <div className="aurora-bg" aria-hidden="true" />
           {/* Keyboard users land here first: jumps past the sticky header nav */}
           <a href="#main-content" className="skip-link">
             Skip to main content

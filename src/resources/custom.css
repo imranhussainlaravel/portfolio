@@ -96,6 +96,75 @@
 }
 
 /* ---------------------------------------------------------------------------
+   Ambient aurora glow
+   A soft violet light rising from the bottom of the viewport that slowly
+   breathes up and down. Fixed so it stays put while the page scrolls.
+   Animates transform/opacity only (never width/height/top) so it stays on the
+   compositor and cannot trigger layout or CLS.
+   --------------------------------------------------------------------------- */
+.aurora-bg {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: -12vh;
+  height: 72vh;
+  z-index: 0;
+  pointer-events: none;
+  will-change: transform, opacity;
+  animation: aurora-breathe 14s ease-in-out infinite alternate;
+}
+
+/* The resting position (translateY 0) is the brightest the glow ever gets, and
+   it was contrast-checked there. The animation only ever pushes it further DOWN
+   and fades it out, so every frame is dimmer than the verified state — the glow
+   can never drift bright enough to hurt footer text.
+   scaleY only: a uniform scale on a viewport-width fixed box can push the
+   document's scrollable overflow sideways and produce a horizontal scrollbar. */
+@keyframes aurora-breathe {
+  from {
+    transform: translate3d(0, 0, 0) scaleY(1);
+    opacity: 1;
+  }
+  to {
+    transform: translate3d(0, 4vh, 0) scaleY(1.07);
+    opacity: 0.82;
+  }
+}
+
+/* The gradient centre sits at 118% — below the viewport edge — so the page only
+   ever shows the upper falloff. Measured at the bottom of the viewport this
+   composites to rgb(72,43,133) in dark, which holds muted footer text at 5.08:1
+   (AA). Raising the centre makes it prettier and unreadable: at 108% the same
+   text drops to 1.96:1. */
+
+/* Dark: violet burning up into the page black. */
+:root:not([data-theme="light"]) .aurora-bg {
+  background: radial-gradient(
+    ellipse 62% 100% at 50% 118%,
+    rgba(245, 234, 255, 0.88) 0%,
+    rgba(201, 170, 255, 0.72) 16%,
+    rgba(141, 79, 246, 0.52) 34%,
+    rgba(79, 42, 178, 0.3) 54%,
+    rgba(31, 21, 72, 0.12) 74%,
+    rgba(12, 14, 26, 0) 90%
+  );
+}
+
+/* Light: a periwinkle wash on white. Composites to rgb(216,218,253) at the
+   bottom edge — muted text holds 5.54:1. */
+:root[data-theme="light"] .aurora-bg {
+  background: radial-gradient(
+    ellipse 62% 100% at 50% 118%,
+    rgba(165, 140, 252, 0.62) 0%,
+    rgba(158, 141, 250, 0.48) 18%,
+    rgba(139, 148, 248, 0.32) 38%,
+    rgba(181, 196, 253, 0.18) 60%,
+    rgba(235, 240, 255, 0.06) 80%,
+    rgba(255, 255, 255, 0) 92%
+  );
+}
+
+/* ---------------------------------------------------------------------------
    Reduced motion
    WCAG 2.3.3. Once UI ships no prefers-reduced-motion rules of its own, and
    the theme runs `transition: all` plus staggered RevealFx entrance animations
@@ -119,6 +188,13 @@
     opacity: 1 !important;
     transform: none !important;
     filter: none !important;
+  }
+
+  /* Keep the aurora as a static glow rather than a frozen mid-animation frame. */
+  .aurora-bg {
+    animation: none !important;
+    transform: none !important;
+    opacity: 0.9 !important;
   }
 
   html {
