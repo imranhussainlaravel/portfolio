@@ -15,7 +15,7 @@ interface RouteGuardProps {
  * render rather than in an effect. That matters: an effect never runs on the
  * server, so gating the whole tree behind one would reduce every page's
  * server-rendered HTML to a spinner and leave the real content to client-side
- * hydration — bad for SEO, LCP, and assistive tech.
+ * hydration - bad for SEO, LCP, and assistive tech.
  */
 function isRouteEnabled(pathname: string): boolean {
   if (!pathname) return false;

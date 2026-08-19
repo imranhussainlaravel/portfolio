@@ -1,9 +1,9 @@
-# Imran Hussain — Portfolio
+# Imran Hussain - Portfolio
 
 Personal portfolio site for Imran Hussain, Laravel / PHP Software Engineer.
 
 Built on [Magic Portfolio](https://once-ui.com/products/magic-portfolio) (Once UI) with
-Next.js 16, React 19, and TypeScript. Fully static — **no backend or database required.**
+Next.js 16, React 19, and TypeScript. Fully static - **no backend or database required.**
 
 ## Running locally
 
@@ -46,18 +46,18 @@ images:
 link: "https://optional-live-url.com"
 ---
 
-Markdown body — this becomes the case study page at /work/<filename>.
+Markdown body - this becomes the case study page at /work/<filename>.
 ```
 
 ### Adding a blog post
 
-Same idea — drop an `.mdx` file into `src/app/blog/posts/`. Frontmatter uses `title`, `summary`,
+Same idea - drop an `.mdx` file into `src/app/blog/posts/`. Frontmatter uses `title`, `summary`,
 `publishedAt`, and optionally `tag` and `images`.
 
 ### Project cover images
 
 Covers live in `public/images/projects/<slug>/`. The current ones are generated title cards. Swap
-in real screenshots whenever you have them — just keep the same file paths, or update the `images`
+in real screenshots whenever you have them - just keep the same file paths, or update the `images`
 array in the project's frontmatter.
 
 ## Routes
@@ -74,7 +74,7 @@ Add the route to `protectedRoutes` in `src/resources/once-ui.config.ts` and set
 
 ## Deploying
 
-Any Next.js host works — Vercel is the path of least resistance. Before going live, confirm
+Any Next.js host works - Vercel is the path of least resistance. Before going live, confirm
 `baseURL` in `src/resources/once-ui.config.ts` matches the real domain, since it feeds the sitemap,
 robots.txt, and all SEO meta tags.
 
@@ -82,5 +82,5 @@ robots.txt, and all SEO meta tags.
 
 The template's footer credit and branding assets (`public/trademarks/`) were removed at the owner's
 request. Note that the Magic Portfolio template ships under **CC BY-NC 4.0** (see `LICENSE`), which
-makes attribution a condition of use — an Once UI Pro license waives that requirement. Worth
+makes attribution a condition of use - an Once UI Pro license waives that requirement. Worth
 resolving before the site goes public.

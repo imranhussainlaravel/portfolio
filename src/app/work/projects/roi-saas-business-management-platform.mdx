@@ -1,11 +1,12 @@
 ---
-title: "ROI LevelUp — SaaS Business Management Platform"
+title: "ROI LevelUp - SaaS Business Management Platform"
 subtitle: "A unified suite of CRM, outreach, scheduling, communication, and billing"
 publishedAt: "2025-06-01"
 summary: "Multi-company SaaS platform bringing CRM, outreach, scheduling, communication, subscriptions, and invoicing into one system. Built on Laravel and CodeIgniter with Stripe billing and Firebase messaging."
 tag: "Professional Project"
 link: "https://roilevelup.com/"
 images:
+  - "/images/projects/roi/screen01.png"
   - "/images/projects/roi/cover-01.jpg"
 ---
 
@@ -26,7 +27,7 @@ afterthought.
 
 I developed the backend architecture for company-specific roles, permissions, and menus, so that
 what a user can see and do is derived from their company context rather than a single global role
-table. On top of that sit the business domains — CRM pipelines, deals, offers, appointments,
+table. On top of that sit the business domains - CRM pipelines, deals, offers, appointments,
 invoices, and the workflows that connect them.
 
 ### Stripe subscription lifecycle
@@ -40,7 +41,7 @@ I implemented the full subscription lifecycle rather than just a checkout flow:
 - Webhook handling to keep platform state in sync with Stripe as the source of truth
 - Company-level access control driven by subscription status
 
-The webhook layer is the part that matters most in production — billing state changes originate at
+The webhook layer is the part that matters most in production - billing state changes originate at
 Stripe, and the platform has to react to them correctly even when the user is not in the browser.
 
 ### Real-time communication and video
@@ -53,5 +54,5 @@ an ephemeral call.
 ## Outcome
 
 ROI LevelUp runs in production as a multi-company platform. The subscription and access-control layer is
-the piece I return to most often — it sits between the billing provider and every feature gate in
+the piece I return to most often - it sits between the billing provider and every feature gate in
 the product, so correctness there determines whether customers can use what they paid for.

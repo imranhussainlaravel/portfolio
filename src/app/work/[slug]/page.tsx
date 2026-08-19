@@ -5,10 +5,10 @@ import {
   Schema,
   AvatarGroup,
   Button,
+  Carousel,
   Column,
   Flex,
   Heading,
-  Media,
   Text,
   SmartLink,
   Row,
@@ -131,7 +131,15 @@ export default async function Project({
         </Row>
       </Row>
       {post.metadata.images.length > 0 && (
-        <Media priority aspectRatio="16 / 9" radius="m" alt="image" src={post.metadata.images[0]} />
+        <Carousel
+          priority
+          aspectRatio="16 / 9"
+          sizes="(max-width: 960px) 100vw, 960px"
+          items={post.metadata.images.map((image) => ({
+            slide: image,
+            alt: post.metadata.title,
+          }))}
+        />
       )}
       <Column style={{ margin: "auto" }} as="article" maxWidth="xs">
         <CustomMDX source={post.content} />

@@ -47,7 +47,7 @@ const home: Home = {
   path: "/",
   image: "/images/og/home.jpg",
   label: "Home",
-  title: `${person.name} — Laravel / PHP Software Engineer`,
+  title: `${person.name} - Laravel / PHP Software Engineer`,
   description: `Portfolio of ${person.name}, a backend engineer building SaaS platforms, REST APIs, and payment systems with Laravel and PHP`,
   headline: <>Backend systems for SaaS that hold up in production</>,
   featured: {
@@ -78,7 +78,7 @@ const home: Home = {
 const about: About = {
   path: "/about",
   label: "About",
-  title: `About – ${person.name}`,
+  title: `About - ${person.name}`,
   description: `Meet ${person.name}, a Laravel / PHP software engineer based in Lahore, Pakistan`,
   tableOfContent: {
     display: true,
@@ -105,7 +105,7 @@ const about: About = {
         {person.firstName} is a Lahore-based software engineer specializing in PHP, Laravel, and
         backend application development. He has shipped production SaaS platforms, business
         management systems, REST APIs, subscription and payment workflows, and third-party
-        integrations — taking backend features from requirements and database design through
+        integrations - taking backend features from requirements and database design through
         implementation, testing, integration, and production support.
       </>
     ),
@@ -141,7 +141,7 @@ const about: About = {
           // optional: leave the array empty if you don't want to display images
           {
             src: "/images/projects/roi/cover-01.jpg",
-            alt: "ROI — SaaS Business Management Platform",
+            alt: "ROI - SaaS Business Management Platform",
             width: 16,
             height: 9,
           },
@@ -171,11 +171,11 @@ const about: About = {
     institutions: [
       {
         name: "Superior University",
-        description: <>Master's in Computer Science, 2021 – 2023. Lahore, Pakistan.</>,
+        description: <>Master's in Computer Science, 2021 - 2023. Lahore, Pakistan.</>,
       },
       {
         name: "Superior University",
-        description: <>Associate Degree in Computer Science, 2019 – 2021. Lahore, Pakistan.</>,
+        description: <>Associate Degree in Computer Science, 2019 - 2021. Lahore, Pakistan.</>,
       },
     ],
   },
@@ -201,7 +201,7 @@ const about: About = {
         images: [
           {
             src: "/images/projects/bizee/cover-01.jpg",
-            alt: "Bizee — US Business Formation Partner Platform",
+            alt: "Bizee - US Business Formation Partner Platform",
             width: 16,
             height: 9,
           },
@@ -219,7 +219,7 @@ const about: About = {
         images: [
           {
             src: "/images/projects/zaaddocs/cover-01.jpg",
-            alt: "ZaadDOCS — POS & Financial Management System",
+            alt: "ZaadDOCS - POS & Financial Management System",
             width: 16,
             height: 9,
           },
@@ -229,8 +229,8 @@ const about: About = {
         title: "Payments & Integrations",
         description: (
           <>
-            Stripe subscription lifecycle — trials, failed payments, cancellations, plan changes,
-            proration, and webhooks — plus Firebase, Twilio, AWS S3, Backblaze, Mux, Zoom, and Dolby
+            Stripe subscription lifecycle - trials, failed payments, cancellations, plan changes,
+            proration, and webhooks - plus Firebase, Twilio, AWS S3, Backblaze, Mux, Zoom, and Dolby
             integrations.
           </>
         ),
@@ -243,7 +243,7 @@ const about: About = {
         images: [
           {
             src: "/images/projects/trackpilot/cover-01.jpg",
-            alt: "TrackPilot AI — Remote Work & Time Tracking SaaS",
+            alt: "TrackPilot AI - Remote Work & Time Tracking SaaS",
             width: 16,
             height: 9,
           },
@@ -294,19 +294,19 @@ const blog: Blog = {
 const work: Work = {
   path: "/work",
   label: "Work",
-  title: `Projects – ${person.name}`,
+  title: `Projects - ${person.name}`,
   description: `Backend and SaaS projects built by ${person.name}`,
   // Create new project pages by adding a new .mdx file to app/work/projects
   // All projects will be listed on the /home and /work routes
 };
 
 // The gallery route is disabled in site.config.ts. This object is kept because
-// Header.tsx imports it for the (hidden) nav item — add images and flip the route
+// Header.tsx imports it for the (hidden) nav item - add images and flip the route
 // back on if you ever want a photo gallery.
 const gallery: Gallery = {
   path: "/gallery",
   label: "Gallery",
-  title: `Photo gallery – ${person.name}`,
+  title: `Photo gallery - ${person.name}`,
   description: `A photo collection by ${person.name}`,
   images: [],
 };

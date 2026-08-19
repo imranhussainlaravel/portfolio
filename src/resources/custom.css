@@ -116,7 +116,7 @@
 
 /* The resting position (translateY 0) is the brightest the glow ever gets, and
    it was contrast-checked there. The animation only ever pushes it further DOWN
-   and fades it out, so every frame is dimmer than the verified state — the glow
+  and fades it out, so every frame is dimmer than the verified state - the glow
    can never drift bright enough to hurt footer text.
    scaleY only: a uniform scale on a viewport-width fixed box can push the
    document's scrollable overflow sideways and produce a horizontal scrollbar. */
@@ -131,7 +131,7 @@
   }
 }
 
-/* The gradient centre sits at 118% — below the viewport edge — so the page only
+/* The gradient centre sits at 118% - below the viewport edge - so the page only
    ever shows the upper falloff. Measured at the bottom of the viewport this
    composites to rgb(72,43,133) in dark, which holds muted footer text at 5.08:1
    (AA). Raising the centre makes it prettier and unreadable: at 108% the same
@@ -151,7 +151,7 @@
 }
 
 /* Light: a periwinkle wash on white. Composites to rgb(216,218,253) at the
-   bottom edge — muted text holds 5.54:1. */
+  bottom edge - muted text holds 5.54:1. */
 :root[data-theme="light"] .aurora-bg {
   background: radial-gradient(
     ellipse 62% 100% at 50% 118%,

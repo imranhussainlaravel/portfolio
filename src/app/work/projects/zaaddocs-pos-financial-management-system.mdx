@@ -1,18 +1,19 @@
 ---
-title: "ZaadDOCS — POS & Financial Management System"
+title: "ZaadDOCS - POS & Financial Management System"
 subtitle: "Sales, purchases, ledgers, and financial reporting"
 publishedAt: "2025-04-01"
 summary: "Business management and POS platform covering customers, suppliers, agents, products, sales, purchases, payments, ledgers, invoices, expenses, and financial reporting. I designed the database and built the core backend and financial business logic."
 tag: "Professional Project"
 images:
+  - "/images/projects/zaaddocs/screen01.png"
   - "/images/projects/zaaddocs/cover-01.jpg"
 ---
 
 ## Overview
 
-ZaadDOCS is a business management and point-of-sale platform. It covers the full commercial cycle —
+ZaadDOCS is a business management and point-of-sale platform. It covers the full commercial cycle -
 customers, suppliers, agents, products, sales, purchases, payments, ledgers, invoices, and
-expenses — and rolls all of it up into financial reporting.
+expenses - and rolls all of it up into financial reporting.
 
 **Stack:** Laravel · PHP · MySQL · Blade
 
@@ -21,7 +22,7 @@ expenses — and rolls all of it up into financial reporting.
 ### Database design
 
 I designed the database. In a system where sales, purchases, payments, and expenses all post into
-ledgers, the schema *is* the business logic — get the relationships and constraints wrong and every
+ledgers, the schema *is* the business logic - get the relationships and constraints wrong and every
 report downstream is wrong with them. Transactions and referential integrity carry real weight here,
 because a partially-applied payment is worse than a rejected one.
 
@@ -33,8 +34,8 @@ and how ledger balances derive from the underlying entries rather than being sto
 
 ### POS interfaces and reporting
 
-I built the Blade-based POS interfaces — server-rendered, because a point-of-sale screen needs to be
-fast and dependable rather than clever — along with daily and monthly financial reporting.
+I built the Blade-based POS interfaces - server-rendered, because a point-of-sale screen needs to be
+fast and dependable rather than clever - along with daily and monthly financial reporting.
 
 ## Outcome
 

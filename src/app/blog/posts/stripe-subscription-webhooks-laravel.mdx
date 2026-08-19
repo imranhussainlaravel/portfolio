@@ -1,6 +1,6 @@
 ---
 title: "Stripe is the source of truth, not your database"
-summary: "Notes from building a subscription lifecycle in Laravel: why webhook handling — not checkout — is the part that decides whether your billing is correct."
+summary: "Notes from building a subscription lifecycle in Laravel: why webhook handling - not checkout - is the part that decides whether your billing is correct."
 publishedAt: "2025-07-02"
 tag: "Laravel"
 ---
@@ -24,7 +24,7 @@ your UI:
 - A plan change prorates mid-cycle
 
 Not one of these originates in your app. If your database is the source of truth for subscription
-status, every one of them is a chance for the two systems to disagree — and when they disagree, a
+status, every one of them is a chance for the two systems to disagree - and when they disagree, a
 paying customer gets locked out, or a cancelled one keeps their access. Both are bad, and the second
 one is bad in a way nobody reports to you.
 
@@ -72,7 +72,7 @@ public function hasAccess(): bool
 }
 ```
 
-Where `isUsable()` accounts for the states that should still grant access — `trialing`, `active`,
+Where `isUsable()` accounts for the states that should still grant access - `trialing`, `active`,
 and usually `past_due`, because a failed renewal that Stripe is still retrying is not yet a reason to
 cut someone off mid-workday.
 
