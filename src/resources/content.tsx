@@ -93,9 +93,9 @@ const about: About = {
   },
   resume: {
     display: true,
-    link: "/imran-hussain-resume.pdf",
+    link: "/imran_hussain_resume.pdf",
     label: "Download CV",
-    filename: "Imran-Hussain-CV.pdf",
+    filename: "imran_hussain_resume.pdf",
   },
   intro: {
     display: true,
