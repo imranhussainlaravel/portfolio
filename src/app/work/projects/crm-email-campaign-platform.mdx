@@ -1,0 +1,32 @@
+---
+title: "CRM & Email Campaign Platform"
+subtitle: "Customer management, CRM workflows, and email campaign operations"
+publishedAt: "2025-02-01"
+summary: "Backend functionality for customer management, CRM workflows, and email campaign operations, built with PHP and Laravel."
+tag: "Independent Project"
+images:
+  - "/images/projects/crm-email/cover-01.jpg"
+---
+
+## Overview
+
+An independent project combining a CRM with email campaign tooling, so that customer records and the
+campaigns sent to them live in the same system rather than being synced between two.
+
+**Stack:** PHP · Laravel · MySQL
+
+## What I built
+
+I developed the backend functionality across three areas:
+
+- **Customer management** — the underlying records, their attributes, and the relationships between
+  them
+- **CRM workflows** — how a customer moves through stages, and what the system does at each
+- **Email campaign operations** — composing campaigns, targeting them against customer segments, and
+  running the send
+
+## Notes
+
+Keeping campaigns and CRM data in one schema means segmentation queries run against live customer
+state instead of an exported snapshot. That is the main reason to build the two together rather than
+integrate a separate mail tool.

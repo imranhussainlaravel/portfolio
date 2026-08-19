@@ -1,0 +1,48 @@
+---
+title: "Bizee — US Business Formation Partner Platform"
+subtitle: "Partner APIs, Bearer-token auth, and white-label webhook workflows"
+publishedAt: "2025-05-01"
+summary: "Partner platform connecting external business-formation partners with Bizee services. I developed the Laravel APIs and partner dashboard functionality, using Bearer-token authentication and integrating with Bizee and Atomic internal systems."
+tag: "Professional Project"
+images:
+  - "/images/projects/bizee/cover-01.jpg"
+---
+
+## Overview
+
+Bizee's partner platform connects external business-formation partners to Bizee's services. Partners
+submit and track business formations through an API and a dashboard, while the platform brokers
+those requests to Bizee's internal systems and reports status back.
+
+**Stack:** Laravel · PHP · MySQL · REST APIs · Webhooks
+
+## What I built
+
+### Partner-facing APIs
+
+I developed the Laravel APIs partners integrate against, secured with Bearer-token authentication
+so each partner's credentials scope what they can read and submit. The APIs integrate with Bizee and
+Atomic internal systems, which meant the partner-facing contract had to stay stable even as the
+internal services behind it changed shape.
+
+### Partner dashboard
+
+Alongside the API, I built partner dashboard functionality so partners who do not want a deep
+integration can still submit and track formations through a UI backed by the same endpoints.
+
+### Webhook communication with white-label companies
+
+Business formation is not a synchronous operation — filings move through states over days. I worked
+on webhook communication with white-label companies so status changes propagate outward as they
+happen, rather than requiring partners to poll.
+
+### Testing and integration
+
+The work included business-formation testing and API integration across the partner and internal
+boundaries — exercising the flows end to end against real internal systems rather than only against
+mocks.
+
+## Outcome
+
+The platform gives external partners a documented, authenticated path into Bizee's formation
+services, with webhooks keeping both sides in sync through a process that plays out asynchronously.

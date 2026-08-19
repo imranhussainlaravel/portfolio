@@ -1,0 +1,57 @@
+---
+title: "ROI LevelUp — SaaS Business Management Platform"
+subtitle: "A unified suite of CRM, outreach, scheduling, communication, and billing"
+publishedAt: "2025-06-01"
+summary: "Multi-company SaaS platform bringing CRM, outreach, scheduling, communication, subscriptions, and invoicing into one system. Built on Laravel and CodeIgniter with Stripe billing and Firebase messaging."
+tag: "Professional Project"
+link: "https://roilevelup.com/"
+images:
+  - "/images/projects/roi/cover-01.jpg"
+---
+
+## Overview
+
+ROI LevelUp is a multi-company SaaS platform for running day-to-day business operations from a
+single system: customers, suppliers, CRM pipelines, appointments, internal communication,
+subscription billing, and invoicing. It ships publicly as a unified suite of content, CRM, outreach,
+scheduling, and analytics tools. Every company on the platform gets its own isolated data, roles,
+and navigation, which made tenancy and access control the central design problem rather than an
+afterthought.
+
+**Stack:** Laravel · CodeIgniter · MySQL · Stripe · Firebase
+
+## What I built
+
+### Backend architecture and multi-tenancy
+
+I developed the backend architecture for company-specific roles, permissions, and menus, so that
+what a user can see and do is derived from their company context rather than a single global role
+table. On top of that sit the business domains — CRM pipelines, deals, offers, appointments,
+invoices, and the workflows that connect them.
+
+### Stripe subscription lifecycle
+
+I implemented the full subscription lifecycle rather than just a checkout flow:
+
+- Trial periods and their expiry behaviour
+- Failed payment handling and retry states
+- Cancellations, including what a company retains after cancelling
+- Plan changes with upgrade proration
+- Webhook handling to keep platform state in sync with Stripe as the source of truth
+- Company-level access control driven by subscription status
+
+The webhook layer is the part that matters most in production — billing state changes originate at
+Stripe, and the platform has to react to them correctly even when the user is not in the browser.
+
+### Real-time communication and video
+
+I built Firebase-based 1-to-1 and group chat, then integrated appointment-based video
+communication on top of the existing scheduling system. That covered recordings, transcripts,
+notifications, and file attachments, so a booked appointment produces a durable record rather than
+an ephemeral call.
+
+## Outcome
+
+ROI LevelUp runs in production as a multi-company platform. The subscription and access-control layer is
+the piece I return to most often — it sits between the billing provider and every feature gate in
+the product, so correctness there determines whether customers can use what they paid for.

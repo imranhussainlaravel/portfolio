@@ -1,0 +1,42 @@
+---
+title: "ZaadDOCS — POS & Financial Management System"
+subtitle: "Sales, purchases, ledgers, and financial reporting"
+publishedAt: "2025-04-01"
+summary: "Business management and POS platform covering customers, suppliers, agents, products, sales, purchases, payments, ledgers, invoices, expenses, and financial reporting. I designed the database and built the core backend and financial business logic."
+tag: "Professional Project"
+images:
+  - "/images/projects/zaaddocs/cover-01.jpg"
+---
+
+## Overview
+
+ZaadDOCS is a business management and point-of-sale platform. It covers the full commercial cycle —
+customers, suppliers, agents, products, sales, purchases, payments, ledgers, invoices, and
+expenses — and rolls all of it up into financial reporting.
+
+**Stack:** Laravel · PHP · MySQL · Blade
+
+## What I built
+
+### Database design
+
+I designed the database. In a system where sales, purchases, payments, and expenses all post into
+ledgers, the schema *is* the business logic — get the relationships and constraints wrong and every
+report downstream is wrong with them. Transactions and referential integrity carry real weight here,
+because a partially-applied payment is worse than a rejected one.
+
+### Core backend and financial logic
+
+I developed the core backend and the financial business logic sitting on top of that schema: how
+sales and purchases post, how payments settle against invoices, how agent activity is attributed,
+and how ledger balances derive from the underlying entries rather than being stored and drifted.
+
+### POS interfaces and reporting
+
+I built the Blade-based POS interfaces — server-rendered, because a point-of-sale screen needs to be
+fast and dependable rather than clever — along with daily and monthly financial reporting.
+
+## Outcome
+
+The system handles day-to-day retail operations and closes the loop into financial reporting, so the
+same entries that record a sale at the counter are the ones that produce the monthly figures.

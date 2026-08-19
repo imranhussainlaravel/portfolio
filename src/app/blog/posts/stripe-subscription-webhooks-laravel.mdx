@@ -1,0 +1,98 @@
+---
+title: "Stripe is the source of truth, not your database"
+summary: "Notes from building a subscription lifecycle in Laravel: why webhook handling — not checkout — is the part that decides whether your billing is correct."
+publishedAt: "2025-07-02"
+tag: "Laravel"
+---
+
+Most Stripe integrations start the same way. You wire up checkout, a customer pays, you flip a
+`is_active` column to `true`, and it works. Then it runs for a few months and you discover the
+uncomfortable part: checkout was maybe ten percent of the problem.
+
+The other ninety percent is everything that happens *after* the first successful payment, none of
+which starts in your application.
+
+## The state you don't control
+
+A subscription changes state for reasons that have nothing to do with a user clicking a button in
+your UI:
+
+- A card expires and the renewal fails
+- Stripe retries it three days later and succeeds
+- The customer cancels from a Stripe-hosted portal
+- A trial ends at 3am
+- A plan change prorates mid-cycle
+
+Not one of these originates in your app. If your database is the source of truth for subscription
+status, every one of them is a chance for the two systems to disagree — and when they disagree, a
+paying customer gets locked out, or a cancelled one keeps their access. Both are bad, and the second
+one is bad in a way nobody reports to you.
+
+The fix is a framing change. Stripe holds the truth about billing. Your database holds a *cache* of
+that truth, and webhooks are how the cache stays warm.
+
+## Make handlers idempotent, because they will run twice
+
+Stripe does not guarantee exactly-once delivery. It guarantees *at least* once. Your handler will
+receive the same event twice, and it will receive events out of order.
+
+This means every handler has to be safe to run repeatedly. The practical version of that rule:
+record the event ID before you process it, and bail if you have seen it.
+
+```php
+public function handle(array $payload): void
+{
+    // Insert-first: a unique index on stripe_event_id makes the DB the arbiter,
+    // not a read-then-write check that two concurrent workers can both pass.
+    try {
+        ProcessedWebhookEvent::create(['stripe_event_id' => $payload['id']]);
+    } catch (UniqueConstraintViolationException) {
+        return; // Already handled.
+    }
+
+    $this->process($payload);
+}
+```
+
+The insert-first ordering matters. A `exists()` check followed by an insert is a race: two workers
+picking up duplicate deliveries can both read "not seen", both proceed, and both process the event.
+Letting the unique index reject the second one closes that window.
+
+## Derive access, don't store it
+
+The second thing worth changing early: stop storing "can this company use the product" as its own
+column that half a dozen code paths write to.
+
+Derive it. One method, one place, reading from the subscription state you sync from Stripe:
+
+```php
+public function hasAccess(): bool
+{
+    return $this->subscription?->isUsable() ?? false;
+}
+```
+
+Where `isUsable()` accounts for the states that should still grant access — `trialing`, `active`,
+and usually `past_due`, because a failed renewal that Stripe is still retrying is not yet a reason to
+cut someone off mid-workday.
+
+The moment access is a stored boolean, you have as many places to get it wrong as you have writers.
+When it is derived, there is exactly one.
+
+## Verify signatures, and be careful with the body
+
+Webhook endpoints are public. Signature verification is what separates a real Stripe event from
+anyone who found your URL.
+
+The detail that catches people out: verification runs against the **raw request body**. If any
+middleware parses, re-encodes, or otherwise touches the payload before you verify it, the computed
+signature won't match. In Laravel that usually means keeping the webhook route clear of middleware
+that normalises input, and reading `$request->getContent()` rather than the decoded array.
+
+## What I would tell myself at the start
+
+Build the webhook handler first, before checkout. It forces you to model subscription state
+properly, and it makes the happy path fall out for free.
+
+The failure modes here are quiet ones. Nobody files a ticket saying "I cancelled last month but
+you're still letting me in." You only find those by having the state be right in the first place.

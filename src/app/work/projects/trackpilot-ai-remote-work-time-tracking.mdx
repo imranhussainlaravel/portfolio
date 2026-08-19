@@ -1,0 +1,54 @@
+---
+title: "TrackPilot AI — Remote Work & Time Tracking SaaS"
+subtitle: "Time tracking, screenshots, activity monitoring, timesheets, and invoicing"
+publishedAt: "2025-08-01"
+summary: "Production SaaS for remote-work tracking: projects, tasks, screenshots, activity monitoring, timesheets, approvals, reporting, and invoicing. I owned the Laravel backend and the REST APIs consumed by the Next.js dashboard and the desktop tracker."
+tag: "Professional Project"
+link: "https://trackpilotai.com/"
+images:
+  - "/images/projects/trackpilot/screen-01.jpg"
+  - "/images/projects/trackpilot/cover-01.jpg"
+---
+
+## Overview
+
+TrackPilot AI is a production SaaS platform for remote-work tracking. Organizations set up
+projects and tasks, freelancers track time against them through a desktop tracker, and the platform
+turns the resulting screenshots, activity data, and timesheets into approvals, reports, and
+invoices.
+
+**Stack:** Laravel · MySQL · Next.js · Stripe · Firebase · AWS S3
+
+## What I built
+
+### Backend ownership
+
+I owned backend development across the platform's core domains:
+
+- Organizations and freelancer accounts
+- Projects, tasks, and their assignment model
+- Roles and permissions
+- Time tracking, screenshots, and activity data
+- Timesheets, approvals, and reporting
+
+The interesting constraint here is write volume. A desktop tracker running for a full workday
+produces a continuous stream of time entries, screenshots, and activity metrics per user. The data
+model and storage strategy had to keep ingestion cheap while still supporting the aggregate queries
+that reporting and timesheets depend on.
+
+### REST APIs
+
+I built the REST API layer consumed by two very different clients:
+
+- The **Next.js dashboard**, which needs aggregated, permission-filtered views
+- The **desktop tracker**, which pushes raw tracking data, screenshots, and activity metrics
+
+Alongside those, the API surface covers subscriptions, administration, support, plans, and coupons.
+Screenshot storage runs through AWS S3 rather than the application server, keeping large binary
+uploads off the request path that handles tracking data.
+
+## Outcome
+
+The platform runs in production with the desktop tracker, dashboard, and billing all reading from
+the same Laravel backend. Splitting ingestion from reporting early is what kept the tracking
+pipeline and the customer-facing dashboard from competing for the same resources.
