@@ -1,0 +1,150 @@
+---
+title: "Roles are not permissions, and in multi-company SaaS the difference bites"
+summary: "When a user belongs to several companies with a different role in each, a global role column stops working. Scoped membership, permission checks, and where to enforce them."
+publishedAt: "2026-02-19"
+tag: "Laravel"
+---
+
+The first version is always a `role` column on `users`. It survives until the day a user belongs
+to two companies — an owner in one, a viewer in another — and a single column cannot represent
+that.
+
+The fix is not a bigger enum. It is recognising that a role is a property of a *membership*, not
+of a person.
+
+## Move the role onto the pivot
+
+```php
+Schema::create('company_user', function (Blueprint $table) {
+    $table->foreignId('company_id')->constrained()->cascadeOnDelete();
+    $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+    $table->string('role');
+    $table->timestamps();
+
+    $table->primary(['company_id', 'user_id']);
+});
+```
+
+The composite primary key is doing two jobs: it enforces one membership per user per company, and
+it gives you the index you need for the lookup that now happens on every request.
+
+```php
+public function companies(): BelongsToMany
+{
+    return $this->belongsToMany(Company::class)->withPivot('role')->withTimestamps();
+}
+
+public function roleIn(Company $company): ?string
+{
+    return $this->companies->firstWhere('id', $company->id)?->pivot->role;
+}
+```
+
+## Check permissions, not roles
+
+`if ($user->role === 'admin')` scatters policy through the codebase. Every new role means finding
+every such check, and you will miss one.
+
+Map roles to permissions in exactly one place:
+
+```php
+class Roles
+{
+    public const MATRIX = [
+        'owner'   => ['*'],
+        'admin'   => ['project.*', 'task.*', 'member.invite', 'billing.view'],
+        'member'  => ['project.view', 'task.*'],
+        'viewer'  => ['project.view', 'task.view'],
+    ];
+}
+```
+
+Then one resolver that understands the wildcards:
+
+```php
+public function canIn(Company $company, string $permission): bool
+{
+    $granted = Roles::MATRIX[$this->roleIn($company)] ?? [];
+
+    foreach ($granted as $rule) {
+        if ($rule === '*' || $rule === $permission) {
+            return true;
+        }
+        if (str_ends_with($rule, '.*')
+            && str_starts_with($permission, substr($rule, 0, -1))) {
+            return true;
+        }
+    }
+
+    return false;
+}
+```
+
+Now adding a role is a line in an array. Changing what admins can do is one edit, not a search
+across controllers.
+
+## Wire it into Gate so policies stay ordinary
+
+```php
+// AppServiceProvider::boot()
+Gate::before(function (User $user, string $ability) {
+    $company = app(CompanyContext::class)->current();
+
+    return $company && $user->canIn($company, $ability) ? true : null;
+});
+```
+
+Returning `null` rather than `false` is the important bit. `null` means "no opinion, keep
+checking", so individual policies can still allow things this matrix does not cover. Returning
+`false` short-circuits the whole gate and silently disables every policy you write afterwards.
+
+Controllers then look completely normal:
+
+```php
+$this->authorize('project.update', $project);
+```
+
+## Enforce on the server, every time
+
+The frontend needs the permission list to decide what to render:
+
+```php
+'permissions' => $user->permissionsIn($company),
+```
+
+Send it, and let React hide buttons with it. Then check again on the server for every action.
+Hidden UI is a convenience for honest users, not a security boundary — the endpoint is reachable
+regardless of what the client chose to draw.
+
+## The cases that are genuinely hard
+
+**The last owner.** Deleting or demoting the final owner leaves a company nobody can administer.
+Guard it explicitly, in the one place membership changes:
+
+```php
+if ($member->pivot->role === 'owner' && $company->owners()->count() === 1) {
+    throw new CannotRemoveLastOwnerException;
+}
+```
+
+**Invitations to users who do not exist.** An invite is a pending membership keyed by email, not
+by `user_id`. On registration, claim any invites matching the new address — that also means an
+invite must expire, or an address invited two years ago silently joins on signup.
+
+**Platform staff.** Internal support users are not members of any company and must not be given
+a fake membership to make the checks pass. That corrupts the model and shows them in member lists.
+Give them a separate `Gate::before` branch, require an explicit tenant selection per request, and
+audit every crossing.
+
+## Cache carefully or not at all
+
+The permission lookup runs on every authorization call, so caching is tempting:
+
+```php
+Cache::remember("u{$user->id}.c{$company->id}.perms", 300, fn () => ...);
+```
+
+If you do, the invalidation is on role change, on membership removal, and on any edit to the
+matrix. A stale permission cache is a user who still has access five minutes after you revoked it
+— which is exactly the five minutes you were trying to prevent. Unless profiling says this is hot,
+a keyed lookup on an already-loaded relation is cheap enough to leave alone.

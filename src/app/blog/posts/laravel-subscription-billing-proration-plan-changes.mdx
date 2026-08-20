@@ -1,0 +1,136 @@
+---
+title: "Plan changes are where subscription billing gets hard"
+summary: "Upgrades, downgrades, proration and trials each have a different correct answer. Choosing per transition instead of globally is what stops billing surprises."
+publishedAt: "2025-12-11"
+tag: "Stripe"
+---
+
+Charging a customer monthly is easy. What breaks is the day they move between plans, because a
+plan change is simultaneously a cancellation, a new subscription, and a money question — and the
+right answer differs depending on which direction they moved.
+
+## Upgrade and downgrade are not symmetric
+
+Treating both as "change the price id" produces one of two bad outcomes: customers charged
+unexpectedly, or customers getting free access.
+
+The behaviour most SaaS converges on, and that customers find fair:
+
+**Upgrade — immediate, prorated.** They want the feature now, they pay the difference now.
+
+```php
+$stripe->subscriptions->update($sub->stripe_id, [
+    'items' => [['id' => $item->id, 'price' => $newPriceId]],
+    'proration_behavior' => 'always_invoice',
+]);
+```
+
+`always_invoice` bills the prorated difference straight away. `create_prorations` puts it on the
+next invoice instead — which means an upgrade today shows up as a surprise on a bill three weeks
+later. Charging now, while they are looking at the upgrade screen, is less confusing.
+
+**Downgrade — deferred to period end, no proration.** They paid for the month; let them have it.
+
+```php
+$stripe->subscriptionSchedules->create([
+    'from_subscription' => $sub->stripe_id,
+]);
+// then set a phase starting at current_period_end on the cheaper price
+```
+
+Downgrading immediately with a credit means issuing refunds or carrying balances, and it lets
+someone upgrade for one day of a feature then drop back. Deferring is simpler and harder to abuse.
+
+The consequence is that your database now has two states: the plan they are on, and the plan they
+are moving to.
+
+```php
+$table->string('plan');
+$table->string('pending_plan')->nullable();
+$table->timestamp('pending_plan_at')->nullable();
+```
+
+Show both in the UI. "Pro until 14 March, then Starter" is a sentence that prevents support
+tickets.
+
+## Proration is not intuitive, so show the number
+
+Stripe will tell you the exact amount before you commit to it:
+
+```php
+$preview = $stripe->invoices->upcoming([
+    'customer'     => $customer->stripe_id,
+    'subscription' => $sub->stripe_id,
+    'subscription_items' => [['id' => $item->id, 'price' => $newPriceId]],
+    'subscription_proration_date' => now()->timestamp,
+]);
+```
+
+Render that on the confirmation screen. "You will be charged $23.40 today, then $49.00 on 1 April"
+is the single highest-value string in a billing flow. Every implementation I have seen that
+skipped it added it later, after the chargebacks.
+
+Pass the same `subscription_proration_date` to the actual update call. Preview at 11:59 and commit
+at 12:01 with no fixed date and the numbers differ — small, but enough to make a customer feel
+misled.
+
+## Trials end in two different ways
+
+A trial that ends with a valid card converts. A trial that ends without one does not, and what
+happens next is a product decision the API cannot make for you.
+
+`trial_will_end` fires three days out. That is your window:
+
+```php
+match ($event->type) {
+    'customer.subscription.trial_will_end' => $this->remindToAddCard($sub),
+    'customer.subscription.updated'        => $this->syncStatus($sub),
+    'invoice.payment_failed'               => $this->enterDunning($sub),
+    'customer.subscription.deleted'        => $this->revokeAccess($sub),
+};
+```
+
+Decide explicitly whether a trial without a card cancels or falls back to a free tier. Both are
+reasonable. Not deciding means Stripe cancels, the user loses access with no warning, and support
+finds out from an angry email.
+
+## Failed payments are a sequence, not an event
+
+A card declining on renewal is not the end of the subscription. Stripe retries on a schedule you
+configure, and the subscription sits in `past_due` throughout.
+
+The mistake is revoking access on the first `invoice.payment_failed`. Most of those recover — the
+card had a temporary hold, the bank flagged and cleared it. Cutting access immediately punishes
+customers who are about to pay you.
+
+Grade it instead:
+
+- First failure → email, full access retained
+- Retries continue → in-app banner, full access retained
+- `customer.subscription.deleted` after retries exhaust → revoke
+
+Only that last event is final. Everything before it is recoverable, and treating it as such is
+worth real revenue.
+
+## Reconcile against Stripe, not against your own writes
+
+Your database records what your application believed. Stripe records what actually happened to
+money. When they disagree, Stripe is right — always.
+
+A nightly job that walks active subscriptions and compares status, price and period end against
+the API is unglamorous and catches everything: the webhook that 500'd during a deploy, the event
+you never subscribed to, the manual change someone made in the dashboard.
+
+```php
+$remote = $stripe->subscriptions->retrieve($sub->stripe_id);
+
+if ($remote->status !== $sub->status) {
+    Log::warning('subscription drift', [
+        'id' => $sub->id, 'local' => $sub->status, 'remote' => $remote->status,
+    ]);
+    $sub->update(['status' => $remote->status]);
+}
+```
+
+Log every correction. A drift count that is normally zero and suddenly is not tells you a webhook
+handler broke — usually before any customer notices.

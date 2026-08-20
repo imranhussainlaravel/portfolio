@@ -96,6 +96,77 @@
 }
 
 /* ---------------------------------------------------------------------------
+   Navigation scroll reset
+   Once UI's styles.css ships `html{scroll-behavior:smooth}`. On a client-side
+   route change the App Router resets position with window.scrollTo(0, 0), and
+   that global rule turns the reset into an ANIMATED scroll. The animation then
+   runs while the incoming page is still mounting - RevealFx entrances, images
+   resolving, the carousel claiming its height - so the target keeps moving and
+   the scroll settles part-way down the new page. That is the "sometimes it
+   doesn't go to the top" behaviour, and it is intermittent precisely because it
+   is a race against render.
+
+   Setting it to auto makes the reset instant, which is what it should always
+   have been. Nothing is lost: the only two places that want smooth scrolling -
+   TableOfContents.scrollTo() and ScrollToHash - both pass
+   `behavior: "smooth"` explicitly in JS, and an explicit argument overrides the
+   CSS property. In-page anchors still glide.
+
+   Written as :root rather than html so it wins on specificity (0,1,0 beats
+   0,0,1) instead of depending on stylesheet import order, which is not
+   guaranteed stable across dev and production builds.
+   --------------------------------------------------------------------------- */
+:root {
+  scroll-behavior: auto;
+}
+
+/* ---------------------------------------------------------------------------
+   Top ambient wash (light theme only)
+   The bottom aurora is already at its contrast ceiling - muted footer text sits
+   directly over its brightest point, so there is nowhere left to go there. The
+   top of the page had the opposite problem: nothing but white, and the only
+   text over it is near-black display type with enormous headroom.
+
+   So the extra colour goes where the budget actually is. Two corner washes,
+   indigo and cyan, which is the brand/accent pair from site.config.
+
+   Verified against the same muted-text luminance (0.0887) used for the bottom
+   aurora, over the #fbfaff page:
+     indigo 0.30 -> composites rgb(221,211,255) -> 5.35:1
+     cyan   0.28 -> composites rgb(209,236,250) -> 6.16:1
+   Both clear AA (4.5:1) with real margin, and both are far from any text that
+   would be at risk - the washes sit in the corners, the hero copy is centred.
+
+   Deliberately light-theme only. Dark already reads well and adding a second
+   glow there would fight the existing one rather than help it.
+   --------------------------------------------------------------------------- */
+.aurora-top {
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 62vh;
+  z-index: 0;
+  pointer-events: none;
+}
+
+:root[data-theme="light"] .aurora-top {
+  background:
+    radial-gradient(
+      ellipse 46% 62% at 8% -8%,
+      rgba(150, 120, 255, 0.3) 0%,
+      rgba(160, 140, 255, 0.11) 45%,
+      rgba(255, 255, 255, 0) 76%
+    ),
+    radial-gradient(
+      ellipse 44% 58% at 94% -6%,
+      rgba(74, 190, 235, 0.28) 0%,
+      rgba(120, 205, 240, 0.1) 46%,
+      rgba(255, 255, 255, 0) 78%
+    );
+}
+
+/* ---------------------------------------------------------------------------
    Ambient aurora glow
    A soft violet light rising from the bottom of the viewport that slowly
    breathes up and down. Fixed so it stays put while the page scrolls.
@@ -150,18 +221,237 @@
   );
 }
 
-/* Light: a periwinkle wash on white. Composites to rgb(216,218,253) at the
-  bottom edge - muted text holds 5.54:1. */
+/* Light: the page itself is lifted off pure white. #ffffff under a glow that
+   only reaches the lower third reads as clinical up top and washed out at the
+   bottom - the tint gives the whole surface a base colour to sit on, while
+   surfaces (cards, the header) stay pure white and gain a little depth for
+   free. */
+:root[data-theme="light"] {
+  --page-background: #fbfaff;
+}
+
+/* Light aurora: two layers, indigo body plus a cyan lift at the lower left,
+   which is the brand/accent pair from site.config rather than an unrelated hue.
+
+   CONTRAST BUDGET - the numbers matter, do not raise the alphas by eye.
+   The bottom edge of the viewport lands on the 60% stop. The old value,
+   rgba(139,148,248,0.32), composited to rgb(218,221,253) and held muted footer
+   text (luminance 0.0887) at 5.54:1. That left real headroom: AA needs 4.5:1,
+   which permits a composite down to luminance 0.574.
+
+   Now: violet 60% stop at 0.38 composites to rgb(205,208,253); the cyan layer
+   sits ON TOP of it, and where they overlap at 0.18 the result is
+   rgb(184,205,250) -> luminance 0.6075 -> 4.74:1. Still AA, with visibly more
+   colour. Pushing cyan to 0.30 drops it to 4.46:1 and fails, so 0.18 is not a
+   round number picked for looks - it is the ceiling minus a margin.
+
+   The breathe animation only ever dims from here, so resting is worst case. */
 :root[data-theme="light"] .aurora-bg {
-  background: radial-gradient(
-    ellipse 62% 100% at 50% 118%,
-    rgba(165, 140, 252, 0.62) 20%,
-    rgba(158, 141, 250, 0.48) 40%,
-    rgba(139, 148, 248, 0.32) 60%,
-    rgba(181, 196, 253, 0.18) 70%,
-    rgba(235, 240, 255, 0.06) 80%,
-    rgba(255, 255, 255, 0) 92%
+  background:
+    radial-gradient(
+      ellipse 48% 74% at 22% 116%,
+      rgba(86, 190, 235, 0.18) 0%,
+      rgba(120, 196, 240, 0.1) 45%,
+      rgba(255, 255, 255, 0) 78%
+    ),
+    radial-gradient(
+      ellipse 62% 100% at 50% 118%,
+      rgba(150, 116, 255, 0.7) 20%,
+      rgba(136, 124, 253, 0.54) 40%,
+      rgba(124, 132, 250, 0.38) 60%,
+      rgba(176, 196, 255, 0.2) 70%,
+      rgba(232, 240, 255, 0.07) 80%,
+      rgba(255, 255, 255, 0) 92%
+    );
+}
+
+/* ---------------------------------------------------------------------------
+   Media frame
+   Screenshots carry their own background, and it usually matches the page.
+   A white app screenshot on the light theme has no visible edge, and a dark
+   one on the dark theme has the same problem - the artwork bleeds into the
+   page and the viewer cannot tell where the image starts. Give framed media a
+   hairline edge plus a soft lift, tuned per theme: light mode leans on the
+   drop shadow, dark mode leans on the border (shadows barely read on black).
+
+   The selectors match both the framed element itself (a bare Media, whose
+   className lands on the div wrapping the img) and a nested media child (a
+   Carousel, whose className lands on its outer wrapper instead).
+   --------------------------------------------------------------------------- */
+:root[data-theme="light"] {
+  --media-frame-border: rgba(23, 20, 48, 0.16);
+  --media-frame-shadow:
+    0 1px 2px rgba(23, 20, 48, 0.06),
+    0 12px 28px -10px rgba(23, 20, 48, 0.2);
+}
+
+:root:not([data-theme="light"]) {
+  --media-frame-border: rgba(255, 255, 255, 0.16);
+  --media-frame-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.4),
+    0 16px 36px -12px rgba(0, 0, 0, 0.6);
+}
+
+.media-frame:has(> img, > video, > iframe),
+.media-frame :is(div, figure):has(> img, > video, > iframe) {
+  border: 1px solid var(--media-frame-border);
+  box-shadow: var(--media-frame-shadow);
+}
+
+/* Flat variant: edge only, no lift. For media that already sits inside an
+   elevated or interactive container, where a second shadow reads as clutter. */
+.media-frame-flat:has(> img, > video, > iframe),
+.media-frame-flat :is(div, figure):has(> img, > video, > iframe) {
+  border: 1px solid var(--media-frame-border);
+  box-shadow: none;
+}
+
+/* ---------------------------------------------------------------------------
+   Carousel controls - sticky focus
+   Carousel.module.scss reveals the edge fades and the prev/next buttons on
+   `.controls:hover, .controls:focus-within`. Clicking an arrow leaves DOM focus
+   sitting on that IconButton, so :focus-within stays true and the overlay stays
+   lit long after the pointer has left - it stops reading as a hover affordance.
+
+   :focus-within cannot distinguish a mouse click from a Tab press, so re-hide
+   the overlay whenever the carousel is neither hovered nor holding a *keyboard*
+   focus. :focus-visible is exactly that distinction, and keeping the
+   :has(:focus-visible) arm means keyboard users still get the controls.
+
+   Matched on [class*="__controls"] because these are CSS module class names,
+   hashed at build time. If Once UI ever renames them in Carousel.module.scss
+   this override quietly stops applying and the sticky overlay returns.
+   --------------------------------------------------------------------------- */
+.media-frame [class*="__controls"]:not(:hover):not(:has(:focus-visible)) [class*="__fade"],
+.media-frame [class*="__controls"]:not(:hover):not(:has(:focus-visible)) [class*="__button"] {
+  opacity: 0;
+}
+
+/* Also restore the buttons' resting offset, so the next real hover replays the
+   slide-in instead of just fading a button that is already in place. */
+.media-frame [class*="__controls"]:not(:hover):not(:has(:focus-visible)) [class*="__left"] > [class*="__button"] {
+  transform: translateX(-1rem);
+}
+
+.media-frame [class*="__controls"]:not(:hover):not(:has(:focus-visible)) [class*="__right"] > [class*="__button"] {
+  transform: translateX(1rem);
+}
+
+/* ---------------------------------------------------------------------------
+   Media frame - fill
+   For a carousel mixing image shapes. The frame is pinned to one ratio so it
+   never resizes between slides, and every image is scaled up until it covers
+   that frame edge to edge - no mat, no letterbox, no empty space on any side.
+   Whatever overhangs the frame on the axis that does not match is trimmed
+   from both edges equally.
+   --------------------------------------------------------------------------- */
+.media-frame-fill:has(> img) > img,
+.media-frame-fill :is(div, figure):has(> img) > img {
+  /* Forced: Once UI's Media hard-codes objectFit as an inline style on the img,
+     and an inline style outranks any selector here. cover is already Media's
+     default, so this only guards against that default changing underneath us. */
+  object-fit: cover !important;
+  object-position: center;
+}
+
+/* ---------------------------------------------------------------------------
+   Media frame - 3D stage
+   Turns a flat browser screenshot into a plate floating in perspective over a
+   lit backdrop. The frame element becomes the stage and carries the gradient;
+   the img is rotated and scaled down inside it, so the room left over by the
+   ratio mismatch we could not otherwise use becomes the backdrop.
+
+   Only screenshots get this. The cover art is already composed, so it stays
+   flat and full bleed - it is excluded by :not([src*="cover-"]), which reads
+   the filename straight out of the src. That survives Next's image optimiser,
+   since the original path is URL-encoded into the query (.../_next/image?url=
+   %2Fimages%2Fprojects%2Froi%2Fcover-01.jpg&w=...) and "cover-" has no
+   characters the encoder touches. Renaming the cover files breaks the rule.
+
+   object-fit stays cover (from media-frame-fill) on purpose: it makes the img's
+   box exactly match the visible bitmap, so the plate's shadow and rounded
+   corners hug the artwork instead of floating around empty letterbox.
+   --------------------------------------------------------------------------- */
+:root[data-theme="light"] {
+  --media-stage: radial-gradient(
+    115% 145% at 18% 112%,
+    #b9a6ff 0%,
+    #d6ccff 30%,
+    #eae6fb 58%,
+    #f6f5fb 82%
   );
+  --media-plate-shadow:
+    -28px 34px 68px rgba(46, 32, 92, 0.28),
+    -6px 8px 18px rgba(46, 32, 92, 0.16),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.5);
+}
+
+:root:not([data-theme="light"]) {
+  --media-stage: radial-gradient(
+    115% 145% at 18% 112%,
+    #4c2a8f 0%,
+    #2a1856 30%,
+    #150f2b 58%,
+    #0c0c14 82%
+  );
+  --media-plate-shadow:
+    -28px 34px 68px rgba(0, 0, 0, 0.55),
+    -6px 8px 18px rgba(0, 0, 0, 0.35),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.09);
+}
+
+.media-frame-3d:has(> img),
+.media-frame-3d :is(div, figure):has(> img) {
+  background: var(--media-stage);
+}
+
+/* perspective() has to lead the function list - the rotations and the translateZ
+   after it are what it applies to. Listing it later would flatten the whole
+   thing. translateZ is what actually pushes the plate back into the scene:
+   unlike scale it also deepens the foreshortening, so the plate reads as
+   sitting further away rather than merely being drawn smaller. At -240px
+   against a 1500px perspective it renders at 1500/(1500+240) = 86% before the
+   rotations, which is why the scale factor here is only a light trim. */
+.media-frame-3d:has(> img) > img:not([src*="cover-"]),
+.media-frame-3d :is(div, figure):has(> img) > img:not([src*="cover-"]) {
+  transform: perspective(1500px) translateZ(-240px) rotateX(11deg) rotateY(-16deg)
+    rotateZ(1.6deg) scale(0.94);
+  border-radius: 10px;
+  box-shadow: var(--media-plate-shadow);
+  /* radius and shadow are in here because the hover state drops both - without
+     them listed they would snap at frame 0 while the transform still glided. */
+  transition:
+    transform 0.5s cubic-bezier(0.2, 0.7, 0.3, 1),
+    border-radius 0.5s cubic-bezier(0.2, 0.7, 0.3, 1),
+    box-shadow 0.5s cubic-bezier(0.2, 0.7, 0.3, 1);
+}
+
+/* Straighten on hover and fill the frame edge to edge. A tilted screenshot is
+   decoration; a flat one can be read, and hovering to inspect is the moment the
+   viewer wants the second one - so the stage gets out of the way entirely.
+   scale(1) is exact, not approximate: the img carries inline width/height 100%
+   and the frame has no padding, so at scale 1 the img box IS the frame's
+   content box. No gradient border is left showing on any side.
+   The radius goes to 0 and the shadow off to match - the frame's own radius
+   plus overflow:hidden rounds the corners at that point, and a shadow on a
+   plate that fills its parent would be clipped away unseen. */
+.media-frame-3d:hover:has(> img) > img:not([src*="cover-"]),
+.media-frame-3d:hover :is(div, figure):has(> img) > img:not([src*="cover-"]) {
+  transform: perspective(1500px) translateZ(0) rotateX(0) rotateY(0) rotateZ(0) scale(1);
+  border-radius: 0;
+  box-shadow: none;
+}
+
+/* Card-width carousels are small enough that a 16deg yaw crowds the plate into
+   its own shadow. Ease off the angle and the depth rather than dropping the
+   effect. This rule scores lower than the :hover rule above, so the flat hover
+   state still wins here. */
+@media (max-width: 768px) {
+  .media-frame-3d:has(> img) > img:not([src*="cover-"]),
+  .media-frame-3d :is(div, figure):has(> img) > img:not([src*="cover-"]) {
+    transform: perspective(1200px) translateZ(-140px) rotateX(7deg) rotateY(-9deg)
+      rotateZ(0.8deg) scale(0.96);
+  }
 }
 
 /* ---------------------------------------------------------------------------

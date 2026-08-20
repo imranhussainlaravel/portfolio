@@ -1,0 +1,154 @@
+---
+title: "Multi-tenant Laravel: the queries your global scope doesn't cover"
+summary: "A single-database SaaS leaks tenant data in the places a global scope never runs - queued jobs, Artisan commands, and cache keys. Here's how to close each one."
+publishedAt: "2026-07-08"
+tag: "Laravel"
+---
+
+Single-database multi-tenancy is the default for a reason. One schema, a `tenant_id` on every
+owned table, a global scope that appends the `where` clause, and you are done in an afternoon.
+
+Except the global scope is the easy ninety percent. The interesting question is not "how do I
+scope a query" — it is "where does my scope silently not run", because that is the only place a
+tenant leak can come from.
+
+## The scope itself
+
+Nothing surprising here. A trait, a booted hook, and a scope that reads whatever your resolver
+considers the current tenant.
+
+```php
+trait BelongsToTenant
+{
+    protected static function bootBelongsToTenant(): void
+    {
+        static::addGlobalScope('tenant', function (Builder $builder) {
+            if ($tenantId = app(TenantContext::class)->id()) {
+                $builder->where($builder->getModel()->getTable().'.tenant_id', $tenantId);
+            }
+        });
+
+        static::creating(function ($model) {
+            $model->tenant_id ??= app(TenantContext::class)->id();
+        });
+    }
+}
+```
+
+Note the `creating` hook. Scoping reads without forcing writes is how you end up with rows whose
+`tenant_id` is null, which then belong to nobody and show up for everybody.
+
+## Gap one: the null tenant is a wildcard
+
+Look closely at that scope. If `id()` returns null, **no where clause is added at all** and the
+query returns every tenant's rows. The failure mode is not an exception. It is a silent
+full-table read.
+
+That is exactly backwards. An unresolved tenant should be the most restrictive state, not the
+least:
+
+```php
+if (! $tenantId = app(TenantContext::class)->id()) {
+    throw new TenantNotResolvedException(static::class);
+}
+$builder->where(/* ... */);
+```
+
+Now anything running outside a resolved tenant fails loudly the first time you hit it in
+development, instead of quietly on a Tuesday in production.
+
+## Gap two: queued jobs
+
+Tenant context is usually set by HTTP middleware. A queued job has no request, so by the time the
+worker picks it up, the middleware never ran and `id()` is null.
+
+Don't pass the model and hope. Pass the tenant id explicitly and re-establish context:
+
+```php
+class GenerateMonthlyInvoices implements ShouldQueue
+{
+    public function __construct(public int $tenantId) {}
+
+    public function handle(): void
+    {
+        app(TenantContext::class)->runFor($this->tenantId, function () {
+            // every query inside this closure is scoped
+        });
+    }
+}
+```
+
+`runFor` sets the tenant, runs the closure, and restores the previous value in a `finally`. The
+restore matters: a worker process is long-lived and handles jobs for many tenants in sequence. A
+job that sets context and never clears it hands its tenant to whatever job runs next on that
+worker.
+
+## Gap three: Artisan and scheduled commands
+
+Same root cause, different entry point. A nightly command that iterates tenants is the one place
+you genuinely want unscoped access — so make that explicit rather than accidental:
+
+```php
+Tenant::query()->each(function (Tenant $tenant) {
+    app(TenantContext::class)->runFor($tenant->id, fn () => $this->processOne($tenant));
+});
+```
+
+The `Tenant` model itself should not use the trait. It is the thing being scoped by, not scoped.
+
+## Gap four: cache keys
+
+This one bites hardest because it survives a correct database layer. Every query can be perfectly
+scoped and you still serve tenant A's data to tenant B if the cache key is shared:
+
+```php
+// leaks across tenants
+Cache::remember('dashboard.stats', 300, fn () => $this->stats());
+
+// scoped
+Cache::remember("t{$tenantId}.dashboard.stats", 300, fn () => $this->stats());
+```
+
+Wrap it once rather than relying on everyone remembering:
+
+```php
+public function remember(string $key, int $ttl, Closure $cb)
+{
+    return Cache::remember($this->prefix().$key, $ttl, $cb);
+}
+```
+
+The same applies to anything else keyed by string: rate limiters, locks, temporary file paths,
+and full-page caches.
+
+## Gap five: the admin panel
+
+Support tooling is where you deliberately cross tenants, and therefore where the guardrails have
+to be strongest. Two rules that have held up well:
+
+- An internal user has no ambient tenant. They must select one, and the selection is per-request,
+  never sticky in the session.
+- Crossing tenants writes an audit row. Not for compliance theatre — because when something looks
+  wrong six weeks later, "which staff member viewed this tenant and when" is the first question
+  you will ask.
+
+## What actually catches this
+
+Code review does not catch tenant leaks reliably. A test does:
+
+```php
+test('models are scoped to the active tenant', function () {
+    $a = Tenant::factory()->create();
+    $b = Tenant::factory()->create();
+
+    tenant($a)->run(fn () => Project::factory()->count(3)->create());
+    tenant($b)->run(fn () => Project::factory()->count(2)->create());
+
+    tenant($a)->run(fn () => expect(Project::count())->toBe(3));
+    tenant($b)->run(fn () => expect(Project::count())->toBe(2));
+});
+```
+
+Write it once as a shared assertion and run it against every tenant-owned model. It is the
+cheapest insurance in the codebase, and it fails the moment someone adds a model and forgets
+the trait.

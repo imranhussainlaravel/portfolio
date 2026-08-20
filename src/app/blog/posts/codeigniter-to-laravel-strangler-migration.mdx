@@ -1,0 +1,134 @@
+---
+title: "Running CodeIgniter and Laravel side by side without a rewrite"
+summary: "The big-bang rewrite is how legacy migrations fail. Routing both frameworks behind one domain, sharing sessions, and moving features one at a time."
+publishedAt: "2026-01-22"
+tag: "Laravel"
+---
+
+Every legacy PHP system eventually gets the same proposal: rewrite it in Laravel, six weeks,
+clean slate. It is almost always the wrong plan. The old system is not slow because it is
+CodeIgniter — it is slow because ten years of business rules live in it, and nobody has a
+complete list of them.
+
+The alternative is the strangler pattern: put both applications behind one domain, move one
+feature at a time, and let the old system shrink until it is worth deleting.
+
+## The routing seam
+
+A web server rule that sends known-migrated paths to Laravel and everything else to the legacy
+app. Nginx:
+
+```nginx
+location ^~ /billing/ { try_files $uri /laravel/public/index.php$is_args$args; }
+location ^~ /reports/ { try_files $uri /laravel/public/index.php$is_args$args; }
+location / { try_files $uri /legacy/index.php?$query_string; }
+```
+
+`^~` matters — it stops nginx evaluating regex locations once a prefix matches, so a PHP handler
+defined later does not steal the request.
+
+Migration then becomes moving one prefix at a time. Each move is independently deployable and
+independently revertible, which is the entire point: a bad release rolls back one feature, not
+the site.
+
+## Sharing the session
+
+A user must not be logged out crossing between the two apps. The reliable approach is a shared
+session store with a shared cookie, and Laravel reading the legacy format rather than either app
+rewriting the other.
+
+Both applications on the same Redis instance, same cookie domain, same cookie name. Then a
+guard that understands whatever the legacy app put in there:
+
+```php
+class LegacySessionGuard implements Guard
+{
+    public function user(): ?Authenticatable
+    {
+        if ($this->user) {
+            return $this->user;
+        }
+
+        $legacyId = session('legacy_user_id') ?? null;
+
+        return $this->user = $legacyId ? User::find($legacyId) : null;
+    }
+}
+```
+
+Resist the urge to make the legacy app write Laravel's format. That is a change to the system you
+are trying to stop touching, and it couples the two deployments together.
+
+## The database is shared, and that is fine
+
+Both applications read and write the same schema throughout. This is the part that feels wrong and
+mostly isn't — it is what makes incremental migration possible at all.
+
+Two rules keep it manageable.
+
+**Laravel does not own the schema yet.** Do not let it generate migrations that rename or drop
+columns the legacy app still uses. Model the existing schema as it is:
+
+```php
+class Invoice extends Model
+{
+    protected $table = 'tbl_invoices';
+    protected $primaryKey = 'invoice_id';
+    public $timestamps = false;
+
+    protected $casts = ['created' => 'datetime', 'is_paid' => 'boolean'];
+}
+```
+
+Ugly table names are not a problem worth solving during migration. Rename after the legacy app is
+gone, when it is a one-line change instead of a coordinated one.
+
+**Write from one place per table.** Two frameworks writing the same table with different
+validation is how you get rows that satisfy neither. When a feature moves, its writes move
+entirely — the legacy app becomes read-only for those tables, even if it still displays them.
+
+## Migrate by write path, not by page
+
+The instinct is to move screens. Better is to move whichever *write* is causing the most pain,
+because that is where the business rules concentrate and where bugs are most expensive.
+
+A reasonable order:
+
+1. New features — build them in Laravel from the start, so the new code stops growing the old
+2. Isolated write paths with clear boundaries — billing, exports, notifications
+3. Read-heavy pages, which are low risk and build confidence
+4. The tangled core, last, when you understand it best
+
+## Verify behaviour before switching
+
+For anything with real business logic, run both implementations and compare before cutting over:
+
+```php
+$new = $this->newCalculator->totals($invoice);
+
+if (config('migration.shadow_compare')) {
+    $old = $this->legacyCalculator->totals($invoice);
+
+    if ($old != $new) {
+        Log::warning('calculator mismatch', [
+            'invoice' => $invoice->id, 'old' => $old, 'new' => $new,
+        ]);
+    }
+}
+
+return $new;
+```
+
+Run it in production, logging only, for a couple of weeks. The mismatches you find are the
+undocumented rules — the rounding rule for one customer, the discount that only applies before
+the 15th. No amount of reading the old code surfaces those as reliably as running both against
+real traffic.
+
+## Expect it to take longer than a rewrite would have
+
+On paper. The difference is that a strangler migration is shipping value from week one and can be
+stopped at any point without loss, while a rewrite delivers nothing until it delivers everything —
+and if it is cancelled at eighty percent, the work is gone.
+
+Some systems never fully finish. A stable corner of the legacy app that nobody touches and that
+works is not a crisis. It is a rational place to stop.

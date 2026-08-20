@@ -10,6 +10,8 @@ export {
   gallery,
 } from "./content";
 
+export { keywords, baseKeywords } from "./seo";
+
 export {
   display,
   mailchimp,

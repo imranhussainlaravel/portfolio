@@ -1,15 +1,19 @@
 import { Column, Heading, Meta, Schema } from "@once-ui-system/core";
-import { baseURL, about, person, work } from "@/resources";
+import { baseURL, about, person, work, keywords } from "@/resources";
 import { Projects } from "@/components/work/Projects";
 
 export async function generateMetadata() {
-  return Meta.generate({
-    title: work.title,
-    description: work.description,
-    baseURL: baseURL,
-    image: `/api/og/generate?title=${encodeURIComponent(work.title)}`,
-    path: work.path,
-  });
+  // work.title is the on-page H1; the search-result title carries the name too.
+  return {
+    ...Meta.generate({
+      title: `${work.title} - ${person.name}`,
+      description: work.description,
+      baseURL: baseURL,
+      image: `/api/og/generate?title=${encodeURIComponent(work.title)}`,
+      path: work.path,
+    }),
+    keywords: keywords["/work"],
+  };
 }
 
 export default function Work() {

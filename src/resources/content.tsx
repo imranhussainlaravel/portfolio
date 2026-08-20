@@ -5,7 +5,10 @@ const person: Person = {
   firstName: "Imran",
   lastName: "Hussain",
   name: `Imran Hussain`,
-  role: "Laravel / PHP Software Engineer",
+  // Positioning: full-stack first so recruiter keyword filters match, backend
+  // second so the qualifier is never more than a few words away. Rendered on
+  // the about page and burned into the OG image, so it has to stay short.
+  role: "Full-Stack Engineer · Laravel & PHP Backend Specialist",
   avatar: "/images/avatar.jpg",
   email: "dgeimran@gmail.com",
   location: "Asia/Karachi", // Expecting the IANA time zone identifier, e.g., 'Europe/Vienna'
@@ -41,15 +44,22 @@ const social: Social = [
     link: `mailto:${person.email}`,
     essential: true,
   },
+  {
+    name: "WhatsApp",
+    icon: "whatsapp",
+    // wa.me wants the number in full international form with no "+", spaces or dashes.
+    link: "https://wa.me/923184120015",
+    essential: true,
+  },
 ];
 
 const home: Home = {
   path: "/",
   image: "/images/og/home.jpg",
   label: "Home",
-  title: `${person.name} - Laravel / PHP Software Engineer`,
-  description: `Portfolio of ${person.name}, a backend engineer building SaaS platforms, REST APIs, and payment systems with Laravel and PHP`,
-  headline: <>Backend systems for SaaS that hold up in production</>,
+  title: `${person.name} - Full-Stack Engineer | Laravel & PHP`,
+  description: `Portfolio of ${person.name}, a full-stack engineer with backend depth - SaaS platforms, REST APIs, and Stripe payment systems built on Laravel and PHP`,
+  headline: <>Full-stack delivery, backend depth - SaaS that holds up in production</>,
   featured: {
     display: true,
     title: (
@@ -65,12 +75,12 @@ const home: Home = {
   },
   subline: (
     <>
-      I'm {person.firstName}, a Laravel and PHP engineer at{" "}
+      I'm {person.firstName}, a full-stack engineer with{" "}
       <Text as="span" size="xl" weight="strong">
-        Applicon Soft
+        backend depth
       </Text>
-      , where I design backend architecture, REST APIs, <br /> and subscription billing for
-      multi-company SaaS platforms.
+      {" "}- architecture, REST APIs and Stripe billing <br /> for multi-company SaaS platforms,
+      and the React and Next.js frontends on top.
     </>
   ),
 };
@@ -79,7 +89,7 @@ const about: About = {
   path: "/about",
   label: "About",
   title: `About - ${person.name}`,
-  description: `Meet ${person.name}, a Laravel / PHP software engineer based in Lahore, Pakistan`,
+  description: `Meet ${person.name}, a full-stack engineer with backend depth, based in Lahore, Pakistan`,
   tableOfContent: {
     display: true,
     subItems: false,
@@ -102,10 +112,11 @@ const about: About = {
     title: "Introduction",
     description: (
       <>
-        {person.firstName} is a Lahore-based software engineer specializing in PHP, Laravel, and
-        backend application development. He has shipped production SaaS platforms, business
-        management systems, REST APIs, subscription and payment workflows, and third-party
-        integrations - taking backend features from requirements and database design through
+        {person.firstName} is a Lahore-based full-stack engineer with 3+ years of professional
+        experience, whose hands-on depth is backend: PHP, Laravel, and MySQL. He has shipped
+        production SaaS platforms end to end - REST APIs, Stripe and Stripe Connect billing, queues
+        and background processing, and third-party integrations - plus the React, Next.js, and Blade
+        interfaces on top of them, taking features from requirements and database design through
         implementation, testing, integration, and production support.
       </>
     ),
@@ -116,25 +127,26 @@ const about: About = {
     experiences: [
       {
         company: "Applicon Soft",
-        timeframe: "Nov 2023 - Present",
+        timeframe: "Apr 2024 - Present",
         role: "Software Engineer",
         achievements: [
           <>
-            Developed and maintained backend systems using PHP, Laravel, CodeIgniter, and MySQL
-            across multiple production SaaS platforms and client projects.
+            Build and maintain production web applications and backend systems with PHP, Laravel,
+            MySQL, and React across multi-company SaaS platforms, remote-work tracking software, a
+            US business-formation partner platform, and a POS/financial management system.
           </>,
           <>
-            Architected backend systems for multi-company SaaS platforms, remote-work tracking
-            software, a US business-formation partner platform, and a POS/financial management
-            system.
+            Design REST APIs and Laravel services covering authentication, authorization,
+            middleware, validation, Eloquent relationships, queues, jobs, events, transactions, and
+            background processing.
           </>,
           <>
-            Built subscription and payment workflows, REST APIs, authentication and authorization,
-            and third-party integrations including Stripe, Firebase, Twilio, and AWS S3.
+            Implement Stripe and Stripe Connect payment flows - subscriptions, commissions, coupons
+            and webhooks - and integrate third-party APIs including Firebase, Twilio, and AWS S3.
           </>,
           <>
-            Collaborated with frontend developers and QA teams across feature development, testing,
-            debugging, code reviews, and production support.
+            Contribute full-stack with React, Vite, Next.js, and JavaScript, and work with Redis,
+            Docker, Git/GitHub, CI/CD, logging, monitoring, and production deployments.
           </>,
         ],
         images: [
@@ -149,16 +161,36 @@ const about: About = {
       },
       {
         company: "Applicon Soft",
-        timeframe: "Aug 2023 - Nov 2023",
-        role: "Software Engineering Intern",
+        timeframe: "Nov 2023 - Apr 2024",
+        role: "Associate Software Engineer",
         achievements: [
           <>
-            Started professional development with PHP and CodeIgniter, working with MVC, OOP,
-            databases, APIs, and backend application development.
+            Developed and maintained Laravel backend features and REST APIs, working with MySQL,
+            Eloquent relationships, queries, validation, and application logic.
           </>,
           <>
-            Progressed into a Software Engineer role through hands-on development across company
-            products and client projects.
+            Implemented authentication, authorization, CRUD functionality, and business workflows,
+            and integrated third-party APIs and webhooks with external services.
+          </>,
+          <>
+            Contributed React-based frontend features and API integration, and collaborated with
+            the team on production applications using Git/GitHub.
+          </>,
+        ],
+        images: [],
+      },
+      {
+        company: "Applicon Soft",
+        timeframe: "Aug 2023 - Nov 2023",
+        role: "Software Engineer Intern",
+        achievements: [
+          <>
+            Started professional development with PHP, Laravel, MySQL, and REST APIs, assisting on
+            web application features and supporting existing functionality.
+          </>,
+          <>
+            Fixed bugs and worked across database queries, API integration, testing and debugging,
+            while learning Git-based development workflows.
           </>,
         ],
         images: [],
@@ -170,8 +202,19 @@ const about: About = {
     title: "Studies",
     institutions: [
       {
+        // The awarded title is Master's in Computer Science (the Pakistani MCS),
+        // but it is a 16-year qualification that maps to a Bachelor's abroad -
+        // which is why LinkedIn lists it as "Bachelor's degree, Computer Science".
+        // Both facts are stated so neither an overseas recruiter nor an ATS reads
+        // it as a postgraduate Master's, and so the site never looks like it
+        // contradicts the LinkedIn profile. Do not trim the equivalence note.
         name: "Superior University",
-        description: <>Master's in Computer Science, 2021 - 2023. Lahore, Pakistan.</>,
+        description: (
+          <>
+            Master's in Computer Science (MCS), 2021 - 2023. Lahore, Pakistan. A 16-year programme,
+            equivalent to a Bachelor's degree.
+          </>
+        ),
       },
       {
         name: "Superior University",
@@ -188,8 +231,8 @@ const about: About = {
         description: (
           <>
             PHP and Laravel as the core stack, with CodeIgniter on legacy systems. REST API design,
-            OOP, MVC, authentication and authorization, role-based permissions, and webhook
-            handling.
+            OOP, MVC, authentication and authorization, role-based permissions, queues, jobs,
+            events, transactions, background processing, and webhook handling.
           </>
         ),
         tags: [
@@ -229,9 +272,9 @@ const about: About = {
         title: "Payments & Integrations",
         description: (
           <>
-            Stripe subscription lifecycle - trials, failed payments, cancellations, plan changes,
-            proration, and webhooks - plus Firebase, Twilio, AWS S3, Backblaze, Mux, Zoom, and Dolby
-            integrations.
+            Stripe and Stripe Connect subscription lifecycle - trials, failed payments,
+            cancellations, plan changes, proration, commissions, coupons, and webhooks - plus
+            Firebase, Twilio, AWS S3, Backblaze, Mux, Zoom, and Dolby integrations.
           </>
         ),
         tags: [
@@ -253,28 +296,34 @@ const about: About = {
         title: "Frontend",
         description: (
           <>
-            Enough frontend to ship end to end: Blade for server-rendered interfaces, Next.js and
-            JavaScript for API-driven dashboards, Bootstrap and plain HTML/CSS for layout.
+            React, Next.js, Vite, and JavaScript for API-driven dashboards, Blade for
+            server-rendered pages, Bootstrap and plain HTML/CSS for layout - the interface layer for
+            the systems I build.
           </>
         ),
         tags: [
-          { name: "JavaScript", icon: "javascript" },
+          { name: "React", icon: "react" },
           { name: "Next.js", icon: "nextjs" },
+          { name: "JavaScript", icon: "javascript" },
           { name: "Bootstrap", icon: "bootstrap" },
         ],
         images: [],
       },
       {
-        title: "Testing & Tools",
+        title: "Infrastructure, Testing & Tools",
         description: (
           <>
-            PHPUnit for test coverage, Postman for API workflows, PHPStan for static analysis, and
-            Laravel Pint for consistent code style.
+            Redis for caching and background queues, Docker for local and deployed environments, and
+            Git/GitHub with CI/CD, logging and monitoring for production releases. PHPUnit for test
+            coverage, Postman for API workflows, PHPStan for static analysis, and Laravel Pint for
+            consistent code style.
           </>
         ),
         tags: [
-          { name: "Postman", icon: "postman" },
+          { name: "Redis", icon: "redis" },
+          { name: "Docker", icon: "docker" },
           { name: "Git", icon: "git" },
+          { name: "Postman", icon: "postman" },
         ],
         images: [],
       },
@@ -285,8 +334,9 @@ const about: About = {
 const blog: Blog = {
   path: "/blog",
   label: "Blog",
+  // Doubles as the visible H1 on /blog. SEO title composed in app/blog/page.tsx.
   title: "Notes on Laravel, APIs, and backend architecture",
-  description: `Read what ${person.name} has been working on recently`,
+  description: `Practical Laravel and PHP engineering notes from ${person.name} - Stripe billing and webhooks, multi-tenant SaaS scoping, queues and background jobs, MySQL indexing, and REST API design.`,
   // Create new blog posts by adding a new .mdx file to app/blog/posts
   // All posts will be listed on the /blog route
 };
@@ -294,8 +344,10 @@ const blog: Blog = {
 const work: Work = {
   path: "/work",
   label: "Work",
-  title: `Projects - ${person.name}`,
-  description: `Backend and SaaS projects built by ${person.name}`,
+  // Doubles as the visible H1 on /work, so it reads as a heading rather than a
+  // meta title. The SEO title is composed separately in app/work/page.tsx.
+  title: "Laravel & SaaS Projects",
+  description: `Full-stack SaaS projects built by ${person.name} - multi-tenant platforms, Stripe and Stripe Connect billing, REST APIs, and CRM systems on Laravel, PHP and React.`,
   // Create new project pages by adding a new .mdx file to app/work/projects
   // All projects will be listed on the /home and /work routes
 };

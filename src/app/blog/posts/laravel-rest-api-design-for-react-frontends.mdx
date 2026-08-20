@@ -1,0 +1,147 @@
+---
+title: "Designing a Laravel API a React frontend can actually use"
+summary: "Most API friction is not about REST purity. It is N+1 on serialization, inconsistent error shapes, and pagination that forces the client to guess."
+publishedAt: "2026-03-25"
+tag: "Laravel"
+---
+
+I have built the Laravel side of enough React and Next.js dashboards to notice that the arguments
+are never about whether an endpoint is truly RESTful. They are about the same four things: shape
+consistency, error handling, pagination, and how many round trips a screen costs.
+
+## One envelope, always
+
+Decide the response shape once. The specific choice matters far less than never varying it.
+
+```php
+class TaskResource extends JsonResource
+{
+    public function toArray($request): array
+    {
+        return [
+            'id'         => $this->id,
+            'title'      => $this->title,
+            'status'     => $this->status,
+            'project'    => ProjectResource::make($this->whenLoaded('project')),
+            'assignee'   => UserResource::make($this->whenLoaded('assignee')),
+            'created_at' => $this->created_at->toIso8601String(),
+        ];
+    }
+}
+```
+
+Two details that save the frontend real work.
+
+`whenLoaded` omits the key entirely when the relation was not eager loaded — so the client can
+distinguish "not requested" from "null". It also stops a serializer from silently triggering a
+query per row, which is the most common N+1 in a Laravel API.
+
+ISO 8601 strings with an offset are unambiguous. `toDateTimeString()` sends `2026-03-25 14:30:00`
+with no timezone, and the client guesses. That guess is wrong for half your users.
+
+## Errors need one shape too
+
+Laravel gives you 422 validation errors in a good format for free:
+
+```json
+{ "message": "The given data was invalid.", "errors": { "email": ["..."] } }
+```
+
+The mistake is not matching it everywhere else. A 403 from a policy, a 404 from route binding, and
+a 500 from an exception should all be parseable by the same client code:
+
+```php
+$exceptions->render(function (DomainException $e) {
+    return response()->json([
+        'message' => $e->getMessage(),
+        'errors'  => [],
+    ], 422);
+});
+```
+
+If every failure has `message` and `errors`, the frontend writes one error handler. If it does
+not, it writes one per endpoint and misses cases.
+
+## Pagination the client can render
+
+`paginate()` returns everything a UI needs — total, current page, last page, links. `simplePaginate()`
+returns less and is faster because it skips the count query. Pick per endpoint, and be explicit:
+an infinite-scroll feed does not need a total, a data table does.
+
+For large offsets, cursor pagination avoids the `OFFSET 50000` problem entirely:
+
+```php
+return TaskResource::collection(
+    Task::where('project_id', $id)->orderBy('id')->cursorPaginate(50)
+);
+```
+
+The cost is no page numbers and no jumping to page 40. For an activity log or a feed, that is not
+a real loss.
+
+## Let the client ask for relations
+
+A tasks list needs the assignee. A task detail needs assignee, project, comments and attachments.
+Serving both from one endpoint means either over-fetching or two endpoints that drift apart.
+
+An allowlist solves it without becoming GraphQL:
+
+```php
+$allowed = ['project', 'assignee', 'comments', 'attachments'];
+
+$includes = collect(explode(',', $request->query('include', '')))
+    ->intersect($allowed)
+    ->all();
+
+$tasks = Task::with($includes)->paginate();
+```
+
+`intersect` against a fixed list is what makes this safe. Passing user input to `with()` unfiltered
+lets a caller eager load arbitrary relation chains and turn one request into a great many queries.
+
+## N+1 is the whole performance story
+
+Almost every "the API is slow" report I have chased was N+1 in serialization, not a missing index.
+Catch it in development rather than in production:
+
+```php
+// AppServiceProvider::boot()
+Model::preventLazyLoading(! app()->isProduction());
+```
+
+Any lazy load now throws in local and test. It is briefly annoying and then permanently useful —
+you find them while writing the endpoint, when the fix is one `with()` call.
+
+Pair it with a query counter in tests:
+
+```php
+test('task index does not N+1', function () {
+    Task::factory()->count(20)->create();
+
+    DB::enableQueryLog();
+    $this->getJson('/api/tasks')->assertOk();
+
+    expect(count(DB::getQueryLog()))->toBeLessThan(6);
+});
+```
+
+The assertion is on a constant, not on row count. That is the actual property you care about, and
+it fails the moment someone adds a relation to the resource without eager loading it.
+
+## Return the updated resource from writes
+
+A `PATCH` returning `204 No Content` forces the client to either re-fetch or guess at the new
+state. Returning the full updated resource lets it update its cache directly:
+
+```php
+public function update(UpdateTaskRequest $request, Task $task): TaskResource
+{
+    $task->update($request->validated());
+
+    return TaskResource::make($task->load('assignee', 'project'));
+}
+```
+
+One round trip instead of two, and no divergence between what the client believes and what the
+server stored. With React Query or SWR this is the difference between a smooth optimistic update
+and a visible flicker.

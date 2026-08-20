@@ -13,7 +13,7 @@ import {
   RevealFx,
   SpacingToken,
 } from "@once-ui-system/core";
-import { Footer, Header, RouteGuard, Providers } from "@/components";
+import { Footer, Header, RouteGuard, Providers, PersonSchema } from "@/components";
 import { baseURL, effects, fonts, style, dataStyle, home, person } from "@/resources";
 
 export async function generateMetadata() {
@@ -45,6 +45,9 @@ export default async function RootLayout({
       )}
     >
       <head>
+        {/* Person entity, emitted site-wide with a stable @id so every page
+            references one canonical entity instead of declaring its own. */}
+        <PersonSchema />
         <script
           id="theme-init"
           dangerouslySetInnerHTML={{
@@ -158,6 +161,7 @@ export default async function RootLayout({
           {/* Ambient glow. Decorative only, so hidden from assistive tech.
               Sits before the content in the DOM so later position:relative
               siblings paint above it without needing a z-index fight. */}
+          <div className="aurora-top" aria-hidden="true" />
           <div className="aurora-bg" aria-hidden="true" />
           {/* Keyboard users land here first: jumps past the sticky header nav */}
           <a href="#main-content" className="skip-link">

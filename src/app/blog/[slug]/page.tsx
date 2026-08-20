@@ -14,7 +14,7 @@ import {
   Media,
   Line,
 } from "@once-ui-system/core";
-import { baseURL, about, blog, person } from "@/resources";
+import { baseURL, about, blog, person, baseKeywords } from "@/resources";
 import { formatDate } from "@/utils/formatDate";
 import { getPosts } from "@/utils/utils";
 import { Metadata } from "next";
@@ -44,13 +44,21 @@ export async function generateMetadata({
 
   if (!post) return {};
 
-  return Meta.generate({
-    title: post.metadata.title,
-    description: post.metadata.summary,
-    baseURL: baseURL,
-    image: post.metadata.image || `/api/og/generate?title=${post.metadata.title}`,
-    path: `${blog.path}/${post.slug}`,
-  });
+  return {
+    ...Meta.generate({
+      title: post.metadata.title,
+      description: post.metadata.summary,
+      baseURL: baseURL,
+      image: post.metadata.image || `/api/og/generate?title=${post.metadata.title}`,
+      path: `${blog.path}/${post.slug}`,
+      type: "article",
+      publishedTime: post.metadata.publishedAt,
+      author: { name: person.name, url: `${baseURL}/about` },
+    }),
+    // The post's own tag leads, then the shared base set. Per-post terms first
+    // keeps each article distinct instead of every post declaring the same list.
+    keywords: [post.metadata.tag, ...baseKeywords].filter(Boolean) as string[],
+  };
 }
 
 export default async function Blog({ params }: { params: Promise<{ slug: string | string[] }> }) {
@@ -127,6 +135,7 @@ export default async function Blog({ params }: { params: Promise<{ slug: string 
               aspectRatio="16/9"
               priority
               sizes="(min-width: 768px) 100vw, 768px"
+              className="media-frame"
               border="neutral-alpha-weak"
               radius="l"
               marginTop="12"

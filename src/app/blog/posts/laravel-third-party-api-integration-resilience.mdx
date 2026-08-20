@@ -1,0 +1,153 @@
+---
+title: "Every third-party API will be down during your demo"
+summary: "Timeouts, retries, circuit breakers and cached fallbacks in Laravel - the difference between a degraded feature and a 500 page."
+publishedAt: "2025-10-30"
+tag: "Laravel"
+---
+
+A production app of any size talks to a handful of external services — payments, SMS, storage,
+email, whatever AI endpoint is in fashion. Each one is a dependency you do not control, cannot
+fix, and will not be warned about.
+
+The goal is not to prevent outages. It is to make sure one vendor's bad hour degrades one feature
+instead of taking down your application.
+
+## Set a timeout, because the default will not save you
+
+Laravel's HTTP client defaults to a 30-second timeout. Thirty seconds is an eternity: with PHP-FPM
+serving requests from a fixed pool of workers, a hanging dependency occupies a worker for the
+whole duration. Enough concurrent requests to a hung service and every worker is blocked — your
+entire site is down because one vendor is slow.
+
+```php
+Http::timeout(5)->connectTimeout(2)->get($url);
+```
+
+`connectTimeout` covers establishing the connection; `timeout` covers the whole request. Setting
+only the second means a DNS or TCP hang eats the full budget before anything is even sent.
+
+Pick numbers from what the call is for. A synchronous call in a web request gets 3–5 seconds. A
+call inside a queued job can afford 30 — nobody is waiting.
+
+## Retry only what is safe to retry
+
+```php
+Http::retry(3, 200, throw: false)
+    ->timeout(5)
+    ->post($url, $payload);
+```
+
+Two things to be careful about.
+
+**Retrying a non-idempotent write creates duplicates.** If the request timed out, you do not know
+whether it was processed. Retrying "charge this card" can charge twice. Only retry when the
+operation is idempotent, or when the vendor supports an idempotency key:
+
+```php
+Http::withHeaders(['Idempotency-Key' => $this->operationUuid])->retry(3, 200)->post(...);
+```
+
+The key must be stable across retries — generated once and stored, not regenerated per attempt.
+A fresh UUID each time is the same as no key at all.
+
+**Do not retry a 4xx.** A 401 or a 422 will fail identically three more times. Retry connection
+errors, timeouts, 429 and 5xx:
+
+```php
+Http::retry(3, 200, function ($exception, $request) {
+    return $exception instanceof ConnectionException
+        || in_array($exception->response?->status(), [429, 500, 502, 503, 504]);
+});
+```
+
+For 429 specifically, honour `Retry-After` if the vendor sends it rather than using your own
+backoff — they are telling you exactly when to come back.
+
+## Circuit breaker: stop calling a service that is down
+
+Retrying against a service that has been failing for ten minutes just multiplies load on them and
+latency on you. After a threshold, stop trying for a while.
+
+```php
+public function call(callable $fn, string $service)
+{
+    $key = "circuit:{$service}";
+
+    if (Cache::get("{$key}:open")) {
+        throw new ServiceUnavailableException($service);
+    }
+
+    try {
+        $result = $fn();
+        Cache::forget("{$key}:failures");
+        return $result;
+    } catch (ConnectionException|RequestException $e) {
+        $failures = Cache::increment("{$key}:failures");
+        Cache::put("{$key}:failures", $failures, 300);
+
+        if ($failures >= 5) {
+            Cache::put("{$key}:open", true, 60);
+        }
+
+        throw $e;
+    }
+}
+```
+
+Five failures opens the circuit for a minute; the next call after that tries again and either
+resets or re-opens. Crude, and enough to prevent a struggling vendor from consuming your workers.
+
+## Decide the degraded behaviour per feature
+
+This is the design question, and it is not the same answer everywhere:
+
+- **Non-essential enrichment** — swallow it. If a currency rate lookup fails, use yesterday's and
+  carry on. Log it, do not surface it.
+- **Deferrable work** — queue it. An SMS that sends four minutes late is fine; failing the
+  registration that triggered it is not.
+- **Genuinely blocking** — fail clearly. If payment authorization is down, say so plainly. Do not
+  pretend to succeed.
+
+The failure mode to avoid is letting an exception from a peripheral service bubble into a 500 on
+a page whose main job had nothing to do with it.
+
+## Cache the last good response
+
+For data that changes slowly, a stale value beats an error:
+
+```php
+public function exchangeRates(): array
+{
+    try {
+        $rates = Http::timeout(5)->get($this->url)->throw()->json();
+        Cache::put('rates:last_good', $rates, now()->addDays(7));
+        return $rates;
+    } catch (Throwable $e) {
+        report($e);
+        return Cache::get('rates:last_good', []);
+    }
+}
+```
+
+Note the long TTL on the fallback and the short one you would use for the fresh path. The fallback
+is not a cache in the performance sense — it is a disaster copy, and it should outlive any
+realistic outage.
+
+Surface staleness in the UI when it matters. "Rates as of 2 hours ago" is honest and lets the user
+decide whether to act on it.
+
+## Log the outside, not just the inside
+
+When a vendor says the problem is on your end, you need the exchange:
+
+```php
+Http::withMiddleware(...)  // or a simple wrapper
+Log::channel('integrations')->info('vendor call', [
+    'service' => $service, 'status' => $response->status(),
+    'duration_ms' => $ms, 'request_id' => $response->header('X-Request-Id'),
+]);
+```
+
+Capture their request id above all. It is the one token that lets a vendor's support team find
+your specific call in their systems, and every conversation goes faster when you can supply it.
+Never log the request body for anything carrying credentials or card data.

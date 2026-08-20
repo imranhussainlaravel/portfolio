@@ -1,0 +1,120 @@
+---
+title: "Your multi-tenant indexes are in the wrong order"
+summary: "In a tenant-scoped app every query starts with tenant_id, which changes what a useful composite index looks like. Column order, cardinality and the leftmost-prefix rule."
+publishedAt: "2026-04-14"
+tag: "MySQL"
+---
+
+In a single-database SaaS, essentially every query has `where tenant_id = ?` on it, added by a
+global scope you may not even see in the code. That one fact should change how you index, and
+usually doesn't, because the scope is invisible at the call site.
+
+## The leftmost prefix rule, and why it decides everything
+
+MySQL uses a composite index left to right, and stops at the first column not constrained by an
+equality. An index on `(a, b, c)` serves `where a`, `where a and b`, `where a and b and c` — and
+does nothing at all for `where b and c`.
+
+So an index on `(status, tenant_id)` is nearly useless in a tenant-scoped app: no query filters on
+status without also filtering by tenant, and MySQL cannot skip to the second column. The same
+columns as `(tenant_id, status)` serve both `where tenant_id` and `where tenant_id and status`.
+
+Rule of thumb that holds up: **`tenant_id` goes first in almost every index on a tenant-owned
+table.** Not because of cardinality — because it is the one predicate present in every query.
+
+## Then order by what the query does next
+
+Past the tenant, order by how the column is used, not by how selective it is:
+
+1. Equality predicates
+2. One range predicate
+3. Columns used for `ORDER BY`
+
+A range stops the index being usable for anything to its right. For:
+
+```sql
+select * from tasks
+where tenant_id = 42 and project_id = 7 and created_at >= '2026-01-01'
+order by created_at desc
+limit 50;
+```
+
+the right index is `(tenant_id, project_id, created_at)`. Both equalities first, then the range —
+which here also satisfies the sort, so MySQL reads 50 rows and stops.
+
+Reverse the last two into `(tenant_id, created_at, project_id)` and the range on `created_at`
+ends index usability; `project_id` gets filtered row by row and the sort may need a filesort. Same
+columns, same storage, very different plan.
+
+## Reading the plan
+
+`EXPLAIN` tells you plainly:
+
+```sql
+explain select ...;
+```
+
+- `type: ref` or `range` — using the index. Good.
+- `type: ALL` — full table scan.
+- `Extra: Using index` — covering index, never touched the table. Best case.
+- `Extra: Using filesort` — sorting in memory or on disk because the index did not provide order.
+- `Extra: Using temporary` — materialising a temp table, usually with `GROUP BY`.
+
+`rows` is an estimate of rows *examined*. When that number is thousands and `LIMIT` is 50, the
+index is not doing the work you think.
+
+In Laravel, get the SQL out without guessing:
+
+```php
+DB::listen(fn ($q) => logger($q->sql, $q->bindings));
+```
+
+Run the actual request, take the query the scope produced, and explain that — not the query you
+wrote in the repository method.
+
+## Covering indexes for hot list endpoints
+
+If an index contains every column a query needs, MySQL never reads the table:
+
+```sql
+create index tasks_list_idx
+    on tasks (tenant_id, project_id, status, id, title);
+```
+
+That is a real win on high-traffic list endpoints, and a real cost on writes — every insert
+maintains it, and wide indexes eat buffer pool that other queries wanted. Worth it for the two or
+three endpoints that dominate your traffic. Not worth it as a habit.
+
+Selecting fewer columns is usually the cheaper version of the same idea. `select id, title, status`
+instead of `select *` makes a narrow covering index viable.
+
+## Redundant indexes are silent tax
+
+Because of leftmost prefix, an index on `(tenant_id)` is fully contained in `(tenant_id, status)`.
+Keeping both means every write maintains two structures for one benefit.
+
+They accumulate quickly — one migration adds `tenant_id`, another adds `(tenant_id, status)`,
+nobody removes the first. Audit occasionally:
+
+```sql
+select table_name, index_name, group_concat(column_name order by seq_in_index) cols
+from information_schema.statistics
+where table_schema = database()
+group by table_name, index_name
+order by table_name;
+```
+
+Read down the list and drop anything that is a strict prefix of another index on the same table.
+
+## The uniqueness one people miss
+
+A unique constraint on a tenant-owned table is almost never globally unique. Two tenants can both
+have a project called "Migration", and should be able to:
+
+```php
+$table->unique(['tenant_id', 'slug']);
+```
+
+Not `$table->unique('slug')`. Getting this wrong produces the worst kind of bug report — one
+tenant's data creation failing because of a value they cannot see, belonging to a tenant they do
+not know exists.

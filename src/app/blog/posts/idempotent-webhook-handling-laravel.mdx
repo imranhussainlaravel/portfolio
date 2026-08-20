@@ -1,0 +1,144 @@
+---
+title: "At-least-once means you will get the same webhook twice"
+summary: "Stripe guarantees at-least-once delivery, never exactly-once. Every design decision in a webhook receiver follows from that one sentence."
+publishedAt: "2026-06-17"
+tag: "Laravel"
+---
+
+Every webhook provider worth using guarantees at-least-once delivery. None of them guarantee
+exactly-once, because exactly-once delivery over an unreliable network is not a thing you can buy.
+
+That single property decides the entire shape of a correct receiver. If the same event can arrive
+twice — and it will — then handling it twice must produce the same result as handling it once.
+Everything below is a consequence of that.
+
+## Why duplicates happen even when nothing is broken
+
+The common assumption is that duplicates mean a retry after a failure. They also happen when
+nothing failed at all:
+
+- Your handler did the work in 31 seconds, the provider timed out at 30, and retried. You
+  processed it correctly, twice.
+- Your response was lost on the way back. Same outcome.
+- A load balancer retried a request it considered idle.
+- Someone replayed events from the dashboard while debugging.
+
+In the timeout case there is no error anywhere in your logs. The job succeeded. It just succeeded
+more than once.
+
+## The receiver: store first, work later
+
+The single most useful structural decision is to stop doing the work inside the HTTP request.
+Verify, persist, acknowledge, then process asynchronously.
+
+```php
+public function handle(Request $request): Response
+{
+    $payload = $request->getContent();
+
+    try {
+        $event = Webhook::constructEvent(
+            $payload,
+            $request->header('Stripe-Signature'),
+            config('services.stripe.webhook_secret'),
+        );
+    } catch (SignatureVerificationException) {
+        return response('invalid signature', 400);
+    }
+
+    $record = WebhookEvent::firstOrCreate(
+        ['provider' => 'stripe', 'event_id' => $event->id],
+        ['type' => $event->type, 'payload' => $payload, 'received_at' => now()],
+    );
+
+    if ($record->wasRecentlyCreated) {
+        ProcessWebhookEvent::dispatch($record->id);
+    }
+
+    return response('', 204);
+}
+```
+
+Three things are doing real work there.
+
+**Signature verification uses the raw body.** Not the parsed array. Laravel's JSON decoding is not
+byte-identical to what was signed, so re-encoding invalidates the signature. Make sure no
+middleware is mutating the body before this point.
+
+**`firstOrCreate` on `event_id` is the idempotency gate**, and it only holds if the database
+enforces it:
+
+```php
+$table->string('provider');
+$table->string('event_id');
+$table->unique(['provider', 'event_id']);
+```
+
+Without the unique constraint, two concurrent deliveries of the same event both see "no existing
+row" and both insert. The check must live where the race is actually resolved, which is the
+database, not PHP.
+
+**`wasRecentlyCreated` gates the dispatch.** A duplicate delivery still returns 204 — it just does
+not queue a second job.
+
+## Returning 204 fast is not laziness
+
+Providers back off aggressively on slow endpoints and some disable them after sustained failures.
+By acknowledging as soon as the event is durably stored, your response time is one insert
+regardless of how expensive the actual work is. A provisioning job that takes 40 seconds no longer
+threatens your webhook endpoint's health.
+
+The trade-off is honest: you have accepted responsibility for the event. If your queue is down,
+you have returned 204 for something you never processed. Which is why the next part matters.
+
+## Idempotency inside the job too
+
+The dispatch is gated, but jobs retry. Make the handler safe to run repeatedly:
+
+```php
+public function handle(): void
+{
+    $record = WebhookEvent::findOrFail($this->id);
+
+    if ($record->processed_at) {
+        return;
+    }
+
+    DB::transaction(function () use ($record) {
+        $this->apply($record);
+        $record->update(['processed_at' => now()]);
+    });
+}
+```
+
+Marking processed inside the same transaction as the work is the point. Commit both or neither.
+Marking it before the work means a crash loses the event permanently; marking it after, outside a
+transaction, means a crash between them replays it.
+
+Prefer operations that are naturally idempotent. `updateOrCreate` over `create`. Setting a state
+to a value over incrementing a counter. `$user->subscription->update(['status' => $event->status])`
+is safe at any multiplicity; `$user->increment('credits', 100)` is not.
+
+## Out-of-order arrival
+
+Retries mean an older event can land after a newer one. If you apply blindly, a retried
+`subscription.updated` from ten minutes ago can overwrite a cancellation from one minute ago.
+
+Guard with the provider's own timestamp:
+
+```php
+if ($subscription->provider_updated_at?->gt($event->created)) {
+    return; // we already hold newer state
+}
+```
+
+Or re-fetch current state from the API instead of trusting the payload, and treat the webhook as
+a signal that *something* changed rather than as the change itself. That costs an API call and
+removes a whole category of ordering bug — usually a good trade.
+
+## Keep the raw payloads
+
+Store the full body and never delete it on a short schedule. When a customer disputes what
+happened, the recorded sequence of provider events is the only account that both sides accept.
+Retention of a few months costs almost nothing and has settled more arguments than any log line
+I have written.

@@ -1,0 +1,134 @@
+---
+title: "Stripe Connect: your platform is now a payments company"
+summary: "Connect looks like Stripe with an extra account id. It isn't - onboarding state, fee mechanics, payout timing and refund liability are all new problems you now own."
+publishedAt: "2026-05-06"
+tag: "Stripe"
+---
+
+Plain Stripe has one question: did this customer pay me. Connect has four: did the customer pay,
+did the right connected account receive it, did the platform take the right fee, and who is
+liable when it reverses.
+
+That last one is the part people discover late.
+
+## Onboarding is a state machine, not a redirect
+
+The tempting model is: send the seller to Stripe, they come back, they can now be paid. That is
+wrong in both directions — they can return without being payable, and they can become payable
+later without returning at all.
+
+The only source of truth is the account object:
+
+```php
+$account = $stripe->accounts->retrieve($seller->stripe_account_id);
+
+$seller->update([
+    'charges_enabled'  => $account->charges_enabled,
+    'payouts_enabled'  => $account->payouts_enabled,
+    'requirements_due' => $account->requirements->currently_due,
+    'disabled_reason'  => $account->requirements->disabled_reason,
+]);
+```
+
+`charges_enabled` and `payouts_enabled` are independent. An account can take payments while
+payouts are blocked pending a document. If your UI treats "onboarded" as a single boolean, you
+will show sellers a green checkmark while their money sits undisbursed.
+
+Keep it fresh with `account.updated` rather than polling. Requirements change when Stripe's
+verification runs, days after signup, with no user action to trigger a refresh.
+
+Also watch `current_deadline` in the requirements object. That is when the account gets disabled
+if documents are still missing — and telling a seller a week ahead is a support ticket you never
+receive.
+
+## Destination charges versus direct charges
+
+The choice is about who owns the customer relationship, and it is hard to reverse.
+
+**Destination charges** — the charge is on your platform account, funds are transferred to the
+connected account, you take `application_fee_amount`:
+
+```php
+$stripe->paymentIntents->create([
+    'amount'                 => 5000,
+    'currency'               => 'usd',
+    'application_fee_amount' => 500,
+    'transfer_data'          => ['destination' => $seller->stripe_account_id],
+]);
+```
+
+The customer sees your platform on their statement. You own disputes. You own refunds. Your
+platform account carries the risk.
+
+**Direct charges** — the charge happens on the connected account:
+
+```php
+$stripe->paymentIntents->create([
+    'amount'                 => 5000,
+    'currency'               => 'usd',
+    'application_fee_amount' => 500,
+], ['stripe_account' => $seller->stripe_account_id]);
+```
+
+The seller appears on the statement and carries dispute liability. Note the second argument —
+that is the `Stripe-Account` header, and forgetting it silently creates the charge on your own
+account instead. Money moves to the wrong place with no error.
+
+Marketplaces where the buyer thinks they are buying from the platform want destination charges.
+Software platforms where the seller is clearly the merchant want direct charges.
+
+## The fee is in cents, and rounding is your problem
+
+`application_fee_amount` is an integer of the smallest currency unit. A "10% commission" on a
+$50.00 charge is `500`. On $49.99 it is `499.9`, which does not exist.
+
+Decide the rounding rule once, centrally, and write it down:
+
+```php
+public function commissionFor(int $amountInCents): int
+{
+    return (int) floor($amountInCents * $this->rate);
+}
+```
+
+`floor` favours the seller by up to one cent. `round` favours neither consistently. Either is
+defensible; silently doing different things in different code paths is not, because the totals
+stop reconciling and nobody can say why.
+
+## Refunds do not automatically claw back your fee
+
+This surprises people. Refunding a destination charge returns money to the customer, but your
+application fee stays with you unless you say otherwise:
+
+```php
+$stripe->refunds->create([
+    'payment_intent'        => $intent->id,
+    'refund_application_fee' => true,
+    'reverse_transfer'       => true,
+]);
+```
+
+`reverse_transfer` pulls the funds back from the connected account. Without it you have refunded
+the customer from your own balance while the seller keeps their share — a real and quietly
+expensive bug.
+
+If the connected account's balance is insufficient, the reversal creates a negative balance that
+Stripe recovers from future payouts. That is fine mechanically, but sellers do not expect it, and
+"why is my payout smaller than my sales" is a support conversation worth pre-empting in your UI.
+
+## Payout timing is not payment timing
+
+A charge succeeding does not mean the seller has money. Funds are available after the settlement
+period, then paid out on the account's schedule. Between those points the money exists but is not
+theirs yet.
+
+Show sellers three separate numbers — pending, available, paid out — and reconcile against
+`balance.available` and `payout.paid` events rather than against your own charge records. Your
+records say what was sold. Stripe's balance says what exists. When they disagree, Stripe is right.
+
+## Test with real onboarding
+
+Connect test mode lets you skip onboarding by flipping capabilities directly. Do not. The
+verification flow with its documents, deadlines and rejections is where the bugs live, and it is
+the part your sellers will actually experience. Run at least one connected account through the
+full flow, including a rejection, before launch.

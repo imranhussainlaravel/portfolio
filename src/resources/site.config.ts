@@ -26,7 +26,10 @@ const routes: RoutesConfig = {
 
 const display: DisplayConfig = {
   location: true,
-  time: true,
+  // A ticking clock in the header is filler - it tells a visitor nothing about
+  // you and costs a setInterval firing every second for the life of the page.
+  // Off unless it ever earns its place.
+  time: false,
   themeSwitcher: true,
 };
 
@@ -34,11 +37,26 @@ const display: DisplayConfig = {
 // Set password in the .env file, refer to .env.example
 const protectedRoutes: ProtectedRoutesConfig = {};
 
-// Import and set font for each variant
+// Import and set font for each variant.
+//
+// Two typefaces, not one. Previously all four slots were Geist, which meant the
+// site had no typographic hierarchy at all - a heading was body text at a larger
+// size, and the name in the header was body text in bold. Nothing could read as
+// a wordmark because there was nothing for it to contrast against.
+//
+// Space Grotesk carries headings and UI labels: it has genuine character in the
+// a, g, k and R, so it reads as a distinct voice, while still being a grotesque
+// that sits comfortably above code blocks. Geist stays on body copy, where
+// neutrality is the point and personality would only slow reading down.
+//
+// If you ever want more drama, swapping Space_Grotesk for a serif display face
+// (Instrument Serif, Fraunces) is a one-line change here - it is a bigger
+// aesthetic commitment and worth seeing before committing to.
 import { Geist } from "next/font/google";
 import { Geist_Mono } from "next/font/google";
+import { Space_Grotesk } from "next/font/google";
 
-const heading = Geist({
+const heading = Space_Grotesk({
   variable: "--font-heading",
   subsets: ["latin"],
   display: "swap",
@@ -50,7 +68,7 @@ const body = Geist({
   display: "swap",
 });
 
-const label = Geist({
+const label = Space_Grotesk({
   variable: "--font-label",
   subsets: ["latin"],
   display: "swap",

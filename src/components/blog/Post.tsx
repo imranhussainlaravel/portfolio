@@ -29,6 +29,7 @@ export default function Post({ post, thumbnail, direction }: PostProps) {
         <Media
           priority
           sizes="(max-width: 768px) 100vw, 640px"
+          className="media-frame-flat"
           border="neutral-alpha-weak"
           cursor="interactive"
           radius="l"

@@ -15,7 +15,7 @@ import {
   Avatar,
   Line,
 } from "@once-ui-system/core";
-import { baseURL, about, person, work } from "@/resources";
+import { baseURL, about, person, work, baseKeywords } from "@/resources";
 import { formatDate } from "@/utils/formatDate";
 import { ScrollToHash, CustomMDX } from "@/components";
 import { Metadata } from "next";
@@ -43,13 +43,19 @@ export async function generateMetadata({
 
   if (!post) return {};
 
-  return Meta.generate({
-    title: post.metadata.title,
-    description: post.metadata.summary,
-    baseURL: baseURL,
-    image: post.metadata.image || `/api/og/generate?title=${post.metadata.title}`,
-    path: `${work.path}/${post.slug}`,
-  });
+  return {
+    ...Meta.generate({
+      title: `${post.metadata.title} - ${person.name}`,
+      description: post.metadata.summary,
+      baseURL: baseURL,
+      image: post.metadata.image || `/api/og/generate?title=${post.metadata.title}`,
+      path: `${work.path}/${post.slug}`,
+      type: "article",
+      publishedTime: post.metadata.publishedAt,
+      author: { name: person.name, url: `${baseURL}/about` },
+    }),
+    keywords: [post.metadata.tag, ...baseKeywords].filter(Boolean) as string[],
+  };
 }
 
 export default async function Project({
@@ -130,10 +136,18 @@ export default async function Project({
           </Text>
         </Row>
       </Row>
+      {/* aspectRatio 1919 / 837 matches the project cards - see the note in
+          ProjectCard. It was 16 / 9, which cropped ~23% off the width of every
+          ~2.29:1 screenshot and cut the sidebars out of the shot.
+          Deliberately NOT media-frame-3d: the cards use the tilted stage to
+          catch the eye while browsing, but this is the page someone opens to
+          actually read the case study, so the screenshot stays flat and full
+          bleed. Decoration earns its place in the index, not in the detail. */}
       {post.metadata.images.length > 0 && (
         <Carousel
+          className="media-frame media-frame-fill"
           priority
-          aspectRatio="16 / 9"
+          aspectRatio="1919 / 837"
           sizes="(max-width: 960px) 100vw, 960px"
           items={post.metadata.images.map((image) => ({
             slide: image,

@@ -73,8 +73,11 @@ export const Header = () => {
         }}
       >
         <Row paddingLeft="12" fillWidth vertical="center" gap="12" textVariant="body-default-s">
+          {/* The name is the wordmark of the whole site. At label-strong-s it
+              sat smaller than the nav pill beside it, which has a border and a
+              shadow - so the navigation outranked the person it belongs to. */}
           <SmartLink href="/" unstyled>
-            <Text variant="label-strong-s" onBackground="neutral-strong">
+            <Text variant="label-strong-m" onBackground="neutral-strong">
               {person.name}
             </Text>
           </SmartLink>

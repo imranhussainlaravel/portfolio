@@ -42,6 +42,7 @@ import {
   SiCss3,
   SiGit,
   SiRedis,
+  SiDocker,
 } from "react-icons/si";
 
 import { FaDiscord, FaGithub, FaLinkedin, FaX, FaThreads, FaInstagram, FaXTwitter, FaFacebook, FaPinterest, FaWhatsapp, FaReddit, FaTelegram, } from "react-icons/fa6";
@@ -88,6 +89,7 @@ export const iconLibrary: Record<string, IconType> = {
   css3: SiCss3,
   git: SiGit,
   redis: SiRedis,
+  docker: SiDocker,
   facebook: FaFacebook,
   pinterest: FaPinterest,
   whatsapp: FaWhatsapp,

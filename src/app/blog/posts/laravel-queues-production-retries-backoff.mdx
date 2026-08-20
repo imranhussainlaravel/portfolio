@@ -1,0 +1,150 @@
+---
+title: "Laravel queues in production: the settings you only learn by losing jobs"
+summary: "Default queue configuration is tuned for local development. Tries, backoff, timeouts, overlap and queue topology are what stand between you and silent data loss."
+publishedAt: "2026-05-29"
+tag: "Laravel"
+---
+
+A Laravel queue works out of the box, which is exactly the problem. It works well enough locally
+that nobody revisits it, and the defaults are wrong for production in ways that only show up when
+a third-party API has a bad afternoon.
+
+Here is what I now set deliberately on anything that matters.
+
+## Tries and backoff are one decision, not two
+
+`$tries = 1` loses work on any transient failure. `$tries = 25` with no delay hammers a struggling
+API twenty-five times in under a second and turns a blip into a ban.
+
+Set both, and space them:
+
+```php
+class SyncInvoiceToAccounting implements ShouldQueue
+{
+    public int $tries = 4;
+    public int $timeout = 120;
+
+    public function backoff(): array
+    {
+        return [30, 120, 600];
+    }
+}
+```
+
+The array is per-attempt: 30 seconds after the first failure, two minutes after the second, ten
+after the third. If the array is shorter than `$tries`, the last value repeats. Most transient
+failures resolve inside ten minutes; anything that does not is not transient and should go to
+`failed_jobs` where a human can see it.
+
+For genuinely time-sensitive work, bound the whole thing instead of counting attempts:
+
+```php
+public function retryUntil(): DateTime
+{
+    return now()->addHour();
+}
+```
+
+A password reset email that finally sends after six hours of retries is worse than one that fails
+and alerts you.
+
+## Timeout must be lower than retry_after
+
+This is the one that causes duplicate processing, and it is pure configuration.
+
+`config/queue.php` has a `retry_after` per connection. That is how long the queue waits before
+assuming a job died and releasing it back for another worker. If a job's `$timeout` is *higher*
+than `retry_after`, the queue hands the job to a second worker while the first is still running it.
+
+```php
+'redis' => [
+    'retry_after' => 180,   // must exceed the longest job timeout
+],
+```
+
+With `retry_after = 90` and `$timeout = 120`, every job that runs past 90 seconds executes twice
+concurrently. No error is logged. You just get two of whatever it does.
+
+Rule: `retry_after` > the highest `$timeout` of any job on that connection, with margin.
+
+## Separate queues by shape, not by feature
+
+The instinct is one queue per domain — `billing`, `reports`, `email`. Better is one queue per
+*latency requirement*, because that is what actually competes:
+
+```php
+'queue' => ['high', 'default', 'heavy'],
+```
+
+- `high` — webhooks, password resets, anything a human is waiting on
+- `default` — ordinary background work
+- `heavy` — report generation, exports, bulk sync
+
+Then a Horizon supervisor per queue, so a thousand queued PDF exports cannot starve a password
+reset. Workers process queues in the order listed, so a single worker on `high,default,heavy`
+drains `high` first — but dedicated supervisors give you independent scaling and clearer metrics.
+
+## WithoutOverlapping for anything that reads-then-writes
+
+Two workers running the same job for the same entity concurrently will interleave in ways your
+code does not expect:
+
+```php
+public function middleware(): array
+{
+    return [
+        (new WithoutOverlapping($this->subscriptionId))
+            ->releaseAfter(30)
+            ->expireAfter(180),
+    ];
+}
+```
+
+`expireAfter` is not optional. Without it, a worker that dies while holding the lock leaves it
+held forever and that key never processes again. Set it above the job's timeout.
+
+## failed() is where you decide what "failed" means
+
+```php
+public function failed(Throwable $e): void
+{
+    $this->invoice->update(['sync_status' => 'failed', 'sync_error' => $e->getMessage()]);
+    Log::error('Invoice sync exhausted retries', [
+        'invoice_id' => $this->invoice->id,
+        'exception'  => $e->getMessage(),
+    ]);
+}
+```
+
+A row in `failed_jobs` nobody reads is not error handling. Put the failure somewhere the product
+surfaces it — a status column, an admin flag, an alert — so the business notices before the
+customer does.
+
+## Deployment: restart workers, always
+
+A worker is a long-lived PHP process. It holds your code in memory at the version it booted with.
+Deploy without restarting and workers keep running the old code indefinitely — including old
+migrations' assumptions about columns that no longer exist.
+
+```bash
+php artisan queue:restart
+```
+
+Wire it into your deploy script, after the migration step. And run workers under a supervisor
+(Horizon, systemd, supervisord) that restarts them when they exit — because `--max-jobs` and
+`--max-time` are how you contain memory leaks:
+
+```bash
+php artisan queue:work --max-jobs=1000 --max-time=3600
+```
+
+Both cause a clean exit that the supervisor turns into a fresh process. Eloquent accumulates
+memory over long runs regardless of how careful you are; periodic recycling is cheaper than
+hunting the leak.
+
+## Monitor queue wait, not queue depth
+
+Depth is a vanity metric — ten thousand fast jobs is healthier than fifty slow ones. What users
+feel is *wait time*: how long the oldest job has been sitting. Horizon reports it per queue, and
+it is the number worth alerting on. A `high` queue with a wait above a few seconds means you are
+under-provisioned right now, whatever the depth says.

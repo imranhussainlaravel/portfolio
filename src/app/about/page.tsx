@@ -12,19 +12,26 @@ import {
   Schema,
   Row,
 } from "@once-ui-system/core";
-import { baseURL, about, person, social } from "@/resources";
+import { baseURL, about, person, social, keywords } from "@/resources";
 import TableOfContents from "@/components/about/TableOfContents";
 import styles from "@/components/about/about.module.scss";
 import React from "react";
 
 export async function generateMetadata() {
-  return Meta.generate({
-    title: about.title,
-    description: about.description,
-    baseURL: baseURL,
-    image: `/api/og/generate?title=${encodeURIComponent(about.title)}`,
-    path: about.path,
-  });
+  // about.title ("About - Imran Hussain") is reused as the homepage button
+  // label, so the search-result title is composed here instead. This page
+  // carries the Person schema, so it is the one that should win the name query
+  // - the title states the name, the role and the city explicitly.
+  return {
+    ...Meta.generate({
+      title: `About ${person.name} - Full-Stack Laravel Engineer in Lahore`,
+      description: about.description,
+      baseURL: baseURL,
+      image: `/api/og/generate?title=${encodeURIComponent(about.title)}`,
+      path: about.path,
+    }),
+    keywords: keywords["/about"],
+  };
 }
 
 export default function About() {

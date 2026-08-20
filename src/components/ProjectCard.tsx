@@ -32,7 +32,18 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
 }) => {
   return (
     <Column fillWidth gap="m">
+      {/* aspectRatio is pinned rather than left at Carousel's "original" default.
+          The project images come in two shapes - browser screenshots at ~2.29:1
+          and cover art at 16:9 (1.78:1) - so "original" resized the frame by
+          ~29% mid-carousel and shunted the copy below it down the page.
+          1919 / 837 is the native ratio of the browser screenshots, which are
+          all but one of the images, so they land in the frame untouched; the
+          16:9 covers scale up to cover it. media-frame-fill keeps every slide
+          edge to edge, so the frame never shows empty space.
+          Keep this in step with the case study hero in app/work/[slug]. */}
       <Carousel
+        className="media-frame media-frame-fill media-frame-3d"
+        aspectRatio="1919 / 837"
         sizes="(max-width: 960px) 100vw, 960px"
         items={images.map((image) => ({
           slide: image,
