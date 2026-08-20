@@ -112,12 +112,7 @@ const about: About = {
     title: "Introduction",
     description: (
       <>
-        {person.firstName} is a Lahore-based full-stack engineer with 3+ years of professional
-        experience, whose hands-on depth is backend: PHP, Laravel, and MySQL. He has shipped
-        production SaaS platforms end to end - REST APIs, Stripe and Stripe Connect billing, queues
-        and background processing, and third-party integrations - plus the React, Next.js, and Blade
-        interfaces on top of them, taking features from requirements and database design through
-        implementation, testing, integration, and production support.
+        I'm a full-stack engineer based in Lahore, Pakistan, with 3+ years of professional experience. My hands-on depth is backend: PHP, Laravel, and MySQL. I've shipped production SaaS platforms end to end, including REST APIs, Stripe and Stripe Connect billing, queues and background processing, and third-party integrations, plus the React, Next.js, and Blade interfaces on top of them, taking features from requirements and database design through implementation, testing, integration, and production support.
       </>
     ),
   },
