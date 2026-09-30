@@ -1,4 +1,5 @@
-import { Column, Heading, Meta, Schema } from "@once-ui-system/core";
+import { Column, Heading, Meta } from "@once-ui-system/core";
+import { JsonLd } from "@/components";
 import { Mailchimp } from "@/components";
 import { Posts } from "@/components/blog/Posts";
 import { baseURL, blog, person, newsletter, keywords } from "@/resources";
@@ -38,17 +39,24 @@ export async function generateMetadata(): Promise<Metadata> {
 export default function Blog() {
   return (
     <Column maxWidth="m" paddingTop="24">
-      <Schema
-        as="blogPosting"
-        baseURL={baseURL}
-        title={blog.title}
-        description={blog.description}
-        path={blog.path}
-        image={`/api/og/generate?title=${encodeURIComponent(blog.title)}`}
-        author={{
-          name: person.name,
-          url: `${baseURL}/blog`,
-          image: `${baseURL}${person.avatar}`,
+      <JsonLd
+        data={{
+          "@context": "https://schema.org",
+          "@type": "BreadcrumbList",
+          itemListElement: [
+            {
+              "@type": "ListItem",
+              position: 1,
+              name: "Home",
+              item: baseURL,
+            },
+            {
+              "@type": "ListItem",
+              position: 2,
+              name: blog.title,
+              item: `${baseURL}${blog.path}`,
+            },
+          ],
         }}
       />
       <Heading marginBottom="l" variant="heading-strong-xl" marginLeft="24">

@@ -2,7 +2,6 @@ import { notFound } from "next/navigation";
 import { CustomMDX, ScrollToHash } from "@/components";
 import {
   Meta,
-  Schema,
   Column,
   Heading,
   HeadingNav,
@@ -21,6 +20,7 @@ import { Metadata } from "next";
 import React from "react";
 import { Posts } from "@/components/blog/Posts";
 import { ShareSection } from "@/components/blog/ShareSection";
+import { JsonLd } from "@/components";
 
 export async function generateStaticParams(): Promise<{ slug: string }[]> {
   const posts = getPosts(["src", "app", "blog", "posts"]);
@@ -93,22 +93,19 @@ export default async function Blog({ params }: { params: Promise<{ slug: string 
       <Row maxWidth={12} m={{ hide: true }} />
       <Row fillWidth horizontal="center">
         <Column as="section" maxWidth="m" horizontal="center" gap="l" paddingTop="24">
-          <Schema
-            as="blogPosting"
-            baseURL={baseURL}
-            path={`${blog.path}/${post.slug}`}
-            title={post.metadata.title}
-            description={post.metadata.summary}
-            datePublished={post.metadata.publishedAt}
-            dateModified={post.metadata.publishedAt}
-            image={
-              post.metadata.image ||
-              `/api/og/generate?title=${encodeURIComponent(post.metadata.title)}`
-            }
-            author={{
-              name: person.name,
-              url: `${baseURL}${about.path}`,
-              image: `${baseURL}${person.avatar}`,
+          <JsonLd
+            data={{
+              "@context": "https://schema.org",
+              "@type": "BlogPosting",
+              headline: post.metadata.title,
+              datePublished: post.metadata.publishedAt,
+              dateModified: post.metadata.publishedAt,
+              author: { "@id": `${baseURL}/#person` },
+              image: post.metadata.image || `/api/og/generate?title=${encodeURIComponent(post.metadata.title)}`,
+              mainEntityOfPage: {
+                "@type": "WebPage",
+                "@id": `${baseURL}${blog.path}/${post.slug}`
+              }
             }}
           />
           <Column maxWidth="s" gap="16" horizontal="center" align="center">

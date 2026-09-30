@@ -1,4 +1,5 @@
-import { Column, Heading, Meta, Schema } from "@once-ui-system/core";
+import { Column, Heading, Meta } from "@once-ui-system/core";
+import { JsonLd } from "@/components";
 import { baseURL, about, person, work, keywords } from "@/resources";
 import { Projects } from "@/components/work/Projects";
 
@@ -37,17 +38,24 @@ export async function generateMetadata(): Promise<Metadata> {
 export default function Work() {
   return (
     <Column maxWidth="m" paddingTop="24">
-      <Schema
-        as="webPage"
-        baseURL={baseURL}
-        path={work.path}
-        title={work.title}
-        description={work.description}
-        image={`/api/og/generate?title=${encodeURIComponent(work.title)}`}
-        author={{
-          name: person.name,
-          url: `${baseURL}${about.path}`,
-          image: `${baseURL}${person.avatar}`,
+      <JsonLd
+        data={{
+          "@context": "https://schema.org",
+          "@type": "BreadcrumbList",
+          itemListElement: [
+            {
+              "@type": "ListItem",
+              position: 1,
+              name: "Home",
+              item: baseURL,
+            },
+            {
+              "@type": "ListItem",
+              position: 2,
+              name: work.title,
+              item: `${baseURL}${work.path}`,
+            },
+          ],
         }}
       />
       <Heading marginBottom="l" variant="heading-strong-xl" align="center">

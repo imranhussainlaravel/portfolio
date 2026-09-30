@@ -9,9 +9,9 @@ import {
   Tag,
   Text,
   Meta,
-  Schema,
   Row,
 } from "@once-ui-system/core";
+import { JsonLd } from "@/components";
 import { baseURL, about, person, social, keywords } from "@/resources";
 import TableOfContents from "@/components/about/TableOfContents";
 import styles from "@/components/about/about.module.scss";
@@ -74,17 +74,11 @@ export default function About() {
   ];
   return (
     <Column maxWidth="m">
-      <Schema
-        as="webPage"
-        baseURL={baseURL}
-        title={about.title}
-        description={about.description}
-        path={about.path}
-        image={`/api/og/generate?title=${encodeURIComponent(about.title)}`}
-        author={{
-          name: person.name,
-          url: `${baseURL}${about.path}`,
-          image: `${baseURL}${person.avatar}`,
+      <JsonLd
+        data={{
+          "@context": "https://schema.org",
+          "@type": "ProfilePage",
+          mainEntity: { "@id": `${baseURL}/#person` },
         }}
       />
       {about.tableOfContent.display && (

@@ -2,7 +2,6 @@ import { notFound } from "next/navigation";
 import { getPosts } from "@/utils/utils";
 import {
   Meta,
-  Schema,
   AvatarGroup,
   Button,
   Carousel,
@@ -20,6 +19,7 @@ import { formatDate } from "@/utils/formatDate";
 import { ScrollToHash, CustomMDX } from "@/components";
 import { Metadata } from "next";
 import { Projects } from "@/components/work/Projects";
+import { JsonLd } from "@/components";
 
 export async function generateStaticParams(): Promise<{ slug: string }[]> {
   const posts = getPosts(["src", "app", "work", "projects"]);
@@ -93,21 +93,13 @@ export default async function Project({
 
   return (
     <Column as="section" maxWidth="m" horizontal="center" gap="l">
-      <Schema
-        as="blogPosting"
-        baseURL={baseURL}
-        path={`${work.path}/${post.slug}`}
-        title={post.metadata.title}
-        description={post.metadata.summary}
-        datePublished={post.metadata.publishedAt}
-        dateModified={post.metadata.publishedAt}
-        image={
-          post.metadata.image || `/api/og/generate?title=${encodeURIComponent(post.metadata.title)}`
-        }
-        author={{
-          name: person.name,
-          url: `${baseURL}${about.path}`,
-          image: `${baseURL}${person.avatar}`,
+      <JsonLd
+        data={{
+          "@context": "https://schema.org",
+          "@type": "CreativeWork",
+          headline: post.metadata.title,
+          author: { "@id": `${baseURL}/#person` },
+          image: post.metadata.image || `/api/og/generate?title=${encodeURIComponent(post.metadata.title)}`,
         }}
       />
       <Column maxWidth="s" gap="16" horizontal="center" align="center">

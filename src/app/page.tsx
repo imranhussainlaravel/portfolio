@@ -7,10 +7,10 @@ import {
   Column,
   Badge,
   Row,
-  Schema,
   Meta,
   Line,
 } from "@once-ui-system/core";
+import { JsonLd } from "@/components";
 import { home, about, person, baseURL, routes, keywords } from "@/resources";
 import { Mailchimp } from "@/components";
 import { Projects } from "@/components/work/Projects";
@@ -51,17 +51,12 @@ export async function generateMetadata(): Promise<Metadata> {
 export default function Home() {
   return (
     <Column maxWidth="m" gap="xl" paddingY="12" horizontal="center">
-      <Schema
-        as="webPage"
-        baseURL={baseURL}
-        path={home.path}
-        title={home.title}
-        description={home.description}
-        image={`/api/og/generate?title=${encodeURIComponent(home.title)}`}
-        author={{
-          name: person.name,
-          url: `${baseURL}${about.path}`,
-          image: `${baseURL}${person.avatar}`,
+      <JsonLd
+        data={{
+          "@context": "https://schema.org",
+          "@type": "WebSite",
+          name: home.title,
+          url: baseURL,
         }}
       />
       <Column fillWidth horizontal="center" gap="m">
@@ -88,7 +83,7 @@ export default function Home() {
             </RevealFx>
           )}
           <RevealFx translateY="4" fillWidth horizontal="center" paddingBottom="16">
-            <Heading wrap="balance" variant="display-strong-l">
+            <Heading as="h1" wrap="balance" variant="display-strong-l">
               {home.headline}
             </Heading>
           </RevealFx>
