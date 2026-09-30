@@ -17,20 +17,35 @@ import TableOfContents from "@/components/about/TableOfContents";
 import styles from "@/components/about/about.module.scss";
 import React from "react";
 
-export async function generateMetadata() {
-  // about.title ("About - Imran Hussain") is reused as the homepage button
-  // label, so the search-result title is composed here instead. This page
-  // carries the Person schema, so it is the one that should win the name query
-  // - the title states the name, the role and the city explicitly.
+import type { Metadata } from "next";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const title = "About Imran Hussain | PHP & Laravel Software Engineer";
+  const description = "Learn about Imran Hussain's journey as a software engineer from Superior University to building complex SaaS platforms at Applicon Soft.";
   return {
-    ...Meta.generate({
-      title: `About ${person.name} - Full-Stack Laravel Engineer in Lahore`,
-      description: about.description,
-      baseURL: baseURL,
-      image: `/api/og/generate?title=${encodeURIComponent(about.title)}`,
-      path: about.path,
-    }),
-    keywords: keywords["/about"],
+    title,
+    description,
+    alternates: {
+      canonical: `${baseURL}/about`,
+    },
+    openGraph: {
+      title,
+      description,
+      url: `${baseURL}/about`,
+      type: "profile",
+      images: [
+        {
+          url: `/api/og/generate?title=${encodeURIComponent(title)}`,
+          alt: title,
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: [`/api/og/generate?title=${encodeURIComponent(title)}`],
+    },
   };
 }
 

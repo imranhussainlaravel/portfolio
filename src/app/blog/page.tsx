@@ -3,18 +3,35 @@ import { Mailchimp } from "@/components";
 import { Posts } from "@/components/blog/Posts";
 import { baseURL, blog, person, newsletter, keywords } from "@/resources";
 
-export async function generateMetadata() {
-  // blog.title is the on-page H1; the search-result title leads with the topic
-  // and carries the name, which is what the name+topic queries need.
+import type { Metadata } from "next";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const title = "Laravel & PHP Technical Blog | Imran Hussain";
+  const description = "Technical articles, tutorials, and deep dives on Laravel, PHP, MySQL, and backend architecture by software engineer Imran Hussain.";
   return {
-    ...Meta.generate({
-      title: `Laravel & Backend Engineering Blog - ${person.name}`,
-      description: blog.description,
-      baseURL: baseURL,
-      image: `/api/og/generate?title=${encodeURIComponent(blog.title)}`,
-      path: blog.path,
-    }),
-    keywords: keywords["/blog"],
+    title,
+    description,
+    alternates: {
+      canonical: `${baseURL}/blog`,
+    },
+    openGraph: {
+      title,
+      description,
+      url: `${baseURL}/blog`,
+      type: "website",
+      images: [
+        {
+          url: `/api/og/generate?title=${encodeURIComponent(title)}`,
+          alt: title,
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: [`/api/og/generate?title=${encodeURIComponent(title)}`],
+    },
   };
 }
 

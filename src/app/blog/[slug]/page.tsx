@@ -44,20 +44,30 @@ export async function generateMetadata({
 
   if (!post) return {};
 
+  const title = post.metadata.title;
+  const description = post.metadata.summary;
+  const image = post.metadata.image || `/api/og/generate?title=${encodeURIComponent(title)}`;
+  const url = `${baseURL}${blog.path}/${post.slug}`;
+
   return {
-    ...Meta.generate({
-      title: post.metadata.title,
-      description: post.metadata.summary,
-      baseURL: baseURL,
-      image: post.metadata.image || `/api/og/generate?title=${post.metadata.title}`,
-      path: `${blog.path}/${post.slug}`,
+    title,
+    description,
+    alternates: { canonical: url },
+    openGraph: {
+      title,
+      description,
+      url,
       type: "article",
       publishedTime: post.metadata.publishedAt,
-      author: { name: person.name, url: `${baseURL}/about` },
-    }),
-    // The post's own tag leads, then the shared base set. Per-post terms first
-    // keeps each article distinct instead of every post declaring the same list.
-    keywords: [post.metadata.tag, ...baseKeywords].filter(Boolean) as string[],
+      authors: [person.name],
+      images: [{ url: image, alt: title }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: [image],
+    },
   };
 }
 

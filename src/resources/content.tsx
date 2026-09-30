@@ -59,7 +59,7 @@ const home: Home = {
   label: "Home",
   title: `${person.name} - Full-Stack Engineer | Laravel & PHP`,
   description: `Portfolio of ${person.name}, a full-stack engineer with backend depth - SaaS platforms, REST APIs, and Stripe payment systems built on Laravel and PHP`,
-  headline: <>Full-stack delivery, backend depth - SaaS that holds up in production</>,
+  headline: <>Imran Hussain &ndash; Full-Stack Laravel Developer Building Scalable SaaS Backends</>,
   featured: {
     display: true,
     title: (
@@ -75,12 +75,7 @@ const home: Home = {
   },
   subline: (
     <>
-      I'm {person.firstName}, a full-stack engineer with{" "}
-      <Text as="span" size="xl" weight="strong">
-        backend depth
-      </Text>
-      {" "}- architecture, REST APIs and Stripe billing <br /> for multi-company SaaS platforms,
-      and the React and Next.js frontends on top.
+      3+ years of experience engineering secure APIs, multi-tenant databases, and complex payment flows for platforms like Bizee and TrackPilot. Based in Lahore, available for remote backend roles. I turn complex business requirements into clean, tested Laravel code.
     </>
   ),
 };

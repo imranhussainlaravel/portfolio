@@ -16,18 +16,35 @@ import { Mailchimp } from "@/components";
 import { Projects } from "@/components/work/Projects";
 import { Posts } from "@/components/blog/Posts";
 
-export async function generateMetadata() {
-  // Meta.generate has no `keywords` field, so the result is spread and the tag
-  // added on top rather than forking the component.
+import type { Metadata } from "next";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const title = "Imran Hussain | Laravel Developer (Remote & Lahore)";
+  const description = "Hire Imran Hussain, a Full-Stack Laravel Developer in Lahore. Specializing in SaaS backends, Stripe Connect, and scalable PHP APIs. Open to remote roles.";
   return {
-    ...Meta.generate({
-      title: home.title,
-      description: home.description,
-      baseURL: baseURL,
-      path: home.path,
-      image: home.image,
-    }),
-    keywords: keywords["/"],
+    title,
+    description,
+    alternates: {
+      canonical: `${baseURL}`,
+    },
+    openGraph: {
+      title,
+      description,
+      url: `${baseURL}`,
+      type: "website",
+      images: [
+        {
+          url: `/api/og/generate?title=${encodeURIComponent(title)}`,
+          alt: title,
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: [`/api/og/generate?title=${encodeURIComponent(title)}`],
+    },
   };
 }
 

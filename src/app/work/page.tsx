@@ -2,17 +2,35 @@ import { Column, Heading, Meta, Schema } from "@once-ui-system/core";
 import { baseURL, about, person, work, keywords } from "@/resources";
 import { Projects } from "@/components/work/Projects";
 
-export async function generateMetadata() {
-  // work.title is the on-page H1; the search-result title carries the name too.
+import type { Metadata } from "next";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const title = "Laravel Projects & SaaS Case Studies | Imran Hussain";
+  const description = "Explore backend case studies by Imran Hussain. See how I built robust Laravel architectures for POS systems, business formation platforms, and time-tracking SaaS.";
   return {
-    ...Meta.generate({
-      title: `${work.title} - ${person.name}`,
-      description: work.description,
-      baseURL: baseURL,
-      image: `/api/og/generate?title=${encodeURIComponent(work.title)}`,
-      path: work.path,
-    }),
-    keywords: keywords["/work"],
+    title,
+    description,
+    alternates: {
+      canonical: `${baseURL}/work`,
+    },
+    openGraph: {
+      title,
+      description,
+      url: `${baseURL}/work`,
+      type: "website",
+      images: [
+        {
+          url: `/api/og/generate?title=${encodeURIComponent(title)}`,
+          alt: title,
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: [`/api/og/generate?title=${encodeURIComponent(title)}`],
+    },
   };
 }
 
