@@ -277,7 +277,7 @@ export default function About() {
                             <Media
                               enlarge
                               radius="m"
-                              sizes={image.width.toString()}
+                              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                               alt={image.alt}
                               src={image.src}
                             />
@@ -352,7 +352,7 @@ export default function About() {
                             <Media
                               enlarge
                               radius="m"
-                              sizes={image.width.toString()}
+                              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                               alt={image.alt}
                               src={image.src}
                             />
