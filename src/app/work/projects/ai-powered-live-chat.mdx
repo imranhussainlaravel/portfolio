@@ -29,8 +29,11 @@ The system covers the path from an anonymous website visitor to a qualified lead
 - Lead handling, so conversations that show intent are captured rather than lost when the visitor
   closes the tab
 
-## Notes
+## Outcome
 
-This one started as a question of where automation should stop. Answering routine questions is a
-good fit for AI; deciding that a conversation is a real lead and needs a human is a decision the
-system should surface rather than make silently. The backend is structured around that split.
+I developed the core backend infrastructure for an AI-powered live-chat solution, utilizing Laravel to broker conversations between anonymous website visitors and the primary logic engine. I owned the complete conversation state management and message persistence layers, ensuring that chat interactions were reliably stored in the database without dropping payloads. I integrated third-party AI APIs to automatically parse and respond to routine customer questions, building a routing mechanism that successfully captures qualified leads when intent is detected. The most significant lesson from this architecture was learning exactly where to draw the boundary for automation; answering routine questions is ideal for AI, but categorizing a conversation as a high-value lead requires the system to hand off state to human operators rather than making silent decisions.
+
+**Key facts:**
+- Stack: PHP, Laravel, AI Integration
+- Ownership: Backend state management, message persistence, and AI API routing
+- Focus: Automated lead capture and conversation tracking

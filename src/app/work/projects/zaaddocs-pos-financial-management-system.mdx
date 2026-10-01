@@ -40,5 +40,9 @@ fast and dependable rather than clever - along with daily and monthly financial 
 
 ## Outcome
 
-The system handles day-to-day retail operations and closes the loop into financial reporting, so the
-same entries that record a sale at the counter are the ones that produce the monthly figures.
+I spearheaded the backend engineering for ZaadDOCS, taking complete ownership of the database architecture and financial business logic. I designed a rigorous MySQL schema to handle the entire commercial lifecycle, mapping complex relationships between sales, purchases, payments, and agent attributions into an immutable ledger system. Using Laravel, I built the core logic that settles payments against invoices and strictly derives ledger balances from underlying entries to prevent data drift. I also developed the server-rendered Blade point-of-sale interfaces, prioritizing raw speed and reliability over heavy client-side state. The main trade-off in building a financial application is that database schemas must enforce the business rules directly; a partially applied payment is much more dangerous than a rejected one, making referential integrity the absolute highest priority.
+
+**Key facts:**
+- Stack: Laravel, PHP, MySQL, Blade
+- Ownership: Database architecture, financial ledger logic, and POS backend
+- Focus: Referential integrity and strict transactional data flows

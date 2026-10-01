@@ -45,5 +45,9 @@ mocks.
 
 ## Outcome
 
-The platform gives external partners a documented, authenticated path into Bizee's formation
-services, with webhooks keeping both sides in sync through a process that plays out asynchronously.
+I architected and developed the partner-facing integration layer for Bizee, delivering secure REST APIs built on Laravel. I took full ownership of designing the Bearer-token authentication system, which rigidly scopes read and write permissions to each individual partner's credentials. To handle long-running, asynchronous business formation processes, I implemented a robust outbound webhook communication system that actively pushes status updates to white-label companies, eliminating the need for inefficient polling. I also engineered the partner dashboard to serve clients requiring a UI rather than direct API access. The most critical lesson from this development was that partner-facing API contracts must remain entirely decoupled and strictly stable, serving as a reliable boundary even when the underlying internal Bizee systems and services change shape over time.
+
+**Key facts:**
+- Stack: Laravel, PHP, MySQL, REST APIs, Webhooks
+- Ownership: Partner-facing APIs, Bearer-token authentication, and dashboard backend
+- Focus: Asynchronous white-label webhook workflows

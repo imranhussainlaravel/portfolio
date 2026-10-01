@@ -54,9 +54,12 @@ an ephemeral call.
 
 ## Outcome
 
-ROI LevelUp runs in production as a multi-company platform. The subscription and access-control layer is
-the piece I return to most often - it sits between the billing provider and every feature gate in
-the product, so correctness there determines whether customers can use what they paid for.
+For ROI LevelUp, I owned the backend architecture and data design of a comprehensive multi-company SaaS, built natively on Laravel. I developed the central multi-tenant access control system, ensuring complete data isolation and strict role-based permissions across CRM pipelines, appointments, and invoicing. A major focus was implementing the complete Stripe subscription lifecycle, including trial management, upgrade proration, and retry-safe webhook handling that reliably synchronizes the platform with Stripe as the source of truth. Furthermore, I integrated Firebase to power real-time chat and video communication tied directly into the scheduling logic. The defining lesson of this project was that the subscription and access-control layer must be heavily fortified, as it sits between the billing provider and every feature gate, dictating whether customers can access the services they purchased.
+
+**Key facts:**
+- Stack: Laravel, CodeIgniter, MySQL, Stripe, Firebase
+- Ownership: Multi-tenant backend, Stripe subscription lifecycle, and Firebase messaging
+- Scope: Integrated CRM, scheduling, and invoicing logic
 
 ## Related articles
 
