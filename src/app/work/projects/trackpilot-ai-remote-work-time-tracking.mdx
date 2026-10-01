@@ -52,9 +52,12 @@ uploads off the request path that handles tracking data.
 
 ## Outcome
 
-The platform runs in production with the desktop tracker, dashboard, and billing all reading from
-the same Laravel backend. Splitting ingestion from reporting early is what kept the tracking
-pipeline and the customer-facing dashboard from competing for the same resources.
+I developed the core Laravel backend for TrackPilot AI, taking ownership of the system architecture from the data models to the REST APIs. I engineered the ingestion pipeline to handle continuous streams of time entries, screenshots, and activity metrics from the desktop tracker, ensuring the system remains stable under heavy write loads. Additionally, I built out the Stripe subscription lifecycle, implementing idempotent webhook handling to reliably synchronize billing states across the platform. The Next.js dashboard consumes these APIs to deliver aggregated, permission-filtered reporting to end users. The main lesson from this deployment was that strictly separating high-volume ingestion routes from the complex reporting queries is absolutely essential to prevent the tracking pipeline and the customer-facing dashboard from competing for the same database resources.
+
+**Key facts:**
+- Stack: Laravel, MySQL, Next.js, Stripe, AWS S3
+- Ownership: Core backend architecture, REST APIs, and Stripe billing integrations
+- Infrastructure: Handled high-volume time tracking and screenshot ingestion via S3
 
 ## Related articles
 
