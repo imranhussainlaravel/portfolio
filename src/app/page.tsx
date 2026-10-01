@@ -11,7 +11,7 @@ import {
   Line,
 } from "@once-ui-system/core";
 import { JsonLd } from "@/components";
-import { home, about, person, baseURL, routes, keywords } from "@/resources";
+import { home, about, person, baseURL, routes } from "@/resources";
 import { Mailchimp } from "@/components";
 import { Projects } from "@/components/work/Projects";
 import { Posts } from "@/components/blog/Posts";
@@ -19,18 +19,18 @@ import { Posts } from "@/components/blog/Posts";
 import type { Metadata } from "next";
 
 export async function generateMetadata(): Promise<Metadata> {
-  const title = "Imran Hussain | Laravel Developer (Remote & Lahore)";
-  const description = "Hire Imran Hussain, a Full-Stack Laravel Developer in Lahore. Specializing in SaaS backends, Stripe Connect, and scalable PHP APIs. Open to remote roles.";
+  const title = "Imran Hussain | Laravel & PHP Developer in Lahore, Pakistan";
+  const description = "Laravel & PHP full-stack engineer in Lahore, Pakistan. 3+ years building SaaS backends, REST APIs and Stripe Connect billing. Open to remote roles.";
   return {
     title,
     description,
     alternates: {
-      canonical: `${baseURL}`,
+      canonical: "https://imranhussainportfolio.com",
     },
     openGraph: {
       title,
       description,
-      url: `${baseURL}`,
+      url: "https://imranhussainportfolio.com",
       type: "website",
       images: [
         {
@@ -54,9 +54,36 @@ export default function Home() {
       <JsonLd
         data={{
           "@context": "https://schema.org",
-          "@type": "WebSite",
-          name: home.title,
-          url: baseURL,
+          "@graph": [
+            {
+              "@type": "Person",
+              "@id": "https://imranhussainportfolio.com/#person",
+              name: person.name,
+              jobTitle: "Laravel & PHP Full-Stack Engineer",
+              url: baseURL,
+              image: `${baseURL}${person.avatar}`,
+              address: {
+                "@type": "PostalAddress",
+                addressLocality: "Lahore",
+                addressCountry: "Pakistan"
+              },
+              worksFor: {
+                "@type": "Organization",
+                name: "Applicon Soft"
+              },
+              knowsAbout: ["Laravel", "PHP", "MySQL", "REST APIs", "Stripe", "Stripe Connect", "React", "Next.js"],
+              sameAs: [
+                "https://github.com/imranhussainlaravel",
+                "https://www.linkedin.com/in/dgeimran"
+              ]
+            },
+            {
+              "@type": "WebSite",
+              "@id": "https://imranhussainportfolio.com/#website",
+              name: home.title,
+              url: baseURL
+            }
+          ]
         }}
       />
       <Column fillWidth horizontal="center" gap="m">
@@ -84,12 +111,18 @@ export default function Home() {
           )}
           <RevealFx translateY="4" fillWidth horizontal="center" paddingBottom="16">
             <Heading as="h1" wrap="balance" variant="display-strong-l">
-              {home.headline}
+              Imran Hussain, Laravel & PHP Full-Stack Engineer in Lahore, Pakistan
             </Heading>
           </RevealFx>
-          <RevealFx translateY="8" delay={0.2} fillWidth horizontal="center" paddingBottom="32">
+          <RevealFx translateY="8" delay={0.2} fillWidth horizontal="center" paddingBottom="16">
             <Text wrap="balance" onBackground="neutral-weak" variant="heading-default-xl">
-              {home.subline}
+              Open to remote roles. 3+ years building SaaS backends, REST APIs and Stripe Connect billing at Applicon Soft, with React and Next.js frontends on top.
+            </Text>
+          </RevealFx>
+          <RevealFx translateY="8" delay={0.3} fillWidth horizontal="center" paddingBottom="32">
+            <Text wrap="balance" onBackground="brand-weak" variant="heading-default-xs" align="center">
+              At a glance: Laravel · PHP · MySQL · REST APIs · Stripe Connect · Queues & Webhooks · React / Next.js<br />
+              Lahore, Pakistan (UTC+5) · Open to remote roles
             </Text>
           </RevealFx>
           <RevealFx paddingTop="12" delay={0.4} horizontal="center" paddingLeft="12">

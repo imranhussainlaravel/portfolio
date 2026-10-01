@@ -1,6 +1,6 @@
 ---
 title: "Laravel queues in production: the settings you only learn by losing jobs"
-summary: "Default queue configuration is tuned for local development. Tries, backoff, timeouts, overlap and queue topology are what stand between you and silent data loss."
+summary: "The Laravel queue settings you learn by losing jobs: retries, backoff, timeouts and failure handling for production."
 publishedAt: "2026-05-29"
 tag: "Laravel"
 ---
@@ -148,3 +148,12 @@ Depth is a vanity metric — ten thousand fast jobs is healthier than fifty slow
 feel is *wait time*: how long the oldest job has been sitting. Horizon reports it per queue, and
 it is the number worth alerting on. A `high` queue with a wait above a few seconds means you are
 under-provisioned right now, whatever the depth says.
+
+
+## Related articles
+
+- [Idempotent Webhook Handling in Laravel (Stripe)](/blog/idempotent-webhook-handling-laravel)
+
+---
+
+*Need a backend built right? [Hire me for remote Laravel roles](/about).*

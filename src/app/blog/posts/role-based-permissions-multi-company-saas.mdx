@@ -1,6 +1,6 @@
 ---
 title: "Roles are not permissions, and in multi-company SaaS the difference bites"
-summary: "When a user belongs to several companies with a different role in each, a global role column stops working. Scoped membership, permission checks, and where to enforce them."
+summary: "Roles are not permissions. How to model role-based access in multi-company Laravel SaaS without leaking access across tenants."
 publishedAt: "2026-02-19"
 tag: "Laravel"
 ---
@@ -148,3 +148,14 @@ If you do, the invalidation is on role change, on membership removal, and on any
 matrix. A stale permission cache is a user who still has access five minutes after you revoked it
 — which is exactly the five minutes you were trying to prevent. Unless profiling says this is hot,
 a keyed lookup on an already-loaded relation is cheap enough to leave alone.
+
+
+## Related articles
+
+- [Laravel Multi-Tenant Scoping: Queries Global Scopes Miss](/blog/laravel-multi-tenant-tenant-scoping)
+- [MySQL Composite Index Order for Multi-Tenant Laravel Apps](/blog/mysql-composite-indexes-multi-tenant)
+- [ROI LevelUp: Laravel Multi-Company SaaS Case Study](/work/roi-saas-business-management-platform)
+
+---
+
+*Need a backend built right? [Hire me for remote Laravel roles](/about).*

@@ -12,7 +12,8 @@ import {
   Row,
 } from "@once-ui-system/core";
 import { JsonLd } from "@/components";
-import { baseURL, about, person, social, keywords } from "@/resources";
+import { baseURL, about, person, social } from "@/resources";
+import { SmartLink } from "@once-ui-system/core";
 import TableOfContents from "@/components/about/TableOfContents";
 import styles from "@/components/about/about.module.scss";
 import React from "react";
@@ -20,18 +21,18 @@ import React from "react";
 import type { Metadata } from "next";
 
 export async function generateMetadata(): Promise<Metadata> {
-  const title = "About Imran Hussain | PHP & Laravel Software Engineer";
-  const description = "Learn about Imran Hussain's journey as a software engineer from Superior University to building complex SaaS platforms at Applicon Soft.";
+  const title = "About Imran Hussain | Laravel Engineer in Lahore";
+  const description = "Imran Hussain is a Laravel & PHP engineer in Lahore with 3+ years at Applicon Soft, building SaaS platforms, REST APIs and Stripe Connect billing.";
   return {
     title,
     description,
     alternates: {
-      canonical: `${baseURL}/about`,
+      canonical: "https://imranhussainportfolio.com/about",
     },
     openGraph: {
       title,
       description,
-      url: `${baseURL}/about`,
+      url: "https://imranhussainportfolio.com/about",
       type: "profile",
       images: [
         {
@@ -166,7 +167,7 @@ export default function About() {
               variant="display-default-xs"
               onBackground="neutral-weak"
             >
-              {person.role}
+              Laravel & PHP Full-Stack Engineer in Lahore, Pakistan
             </Text>
             {social.length > 0 && (
               <Row
@@ -229,6 +230,11 @@ export default function About() {
           {about.intro.display && (
             <Column textVariant="body-default-l" fillWidth gap="m" marginBottom="xl">
               {about.intro.description}
+              <Row gap="16" paddingTop="16">
+                <SmartLink href="/blog">Read my Laravel articles</SmartLink>
+                <Text onBackground="neutral-weak">•</Text>
+                <SmartLink href="/work">See my Laravel case studies</SmartLink>
+              </Row>
             </Column>
           )}
 

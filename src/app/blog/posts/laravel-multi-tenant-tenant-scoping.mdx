@@ -1,6 +1,6 @@
 ---
 title: "Multi-tenant Laravel: the queries your global scope doesn't cover"
-summary: "A single-database SaaS leaks tenant data in the places a global scope never runs - queued jobs, Artisan commands, and cache keys. Here's how to close each one."
+summary: "Global scopes don't cover every query. See where Laravel multi-tenant scoping leaks data and how to close the gaps safely."
 publishedAt: "2026-07-08"
 tag: "Laravel"
 ---
@@ -152,3 +152,14 @@ test('models are scoped to the active tenant', function () {
 Write it once as a shared assertion and run it against every tenant-owned model. It is the
 cheapest insurance in the codebase, and it fails the moment someone adds a model and forgets
 the trait.
+
+
+## Related articles
+
+- [MySQL Composite Index Order for Multi-Tenant Laravel Apps](/blog/mysql-composite-indexes-multi-tenant)
+- [Roles vs Permissions in Multi-Company Laravel SaaS](/blog/role-based-permissions-multi-company-saas)
+- [ROI LevelUp: Laravel Multi-Company SaaS Case Study](/work/roi-saas-business-management-platform)
+
+---
+
+*Need a backend built right? [Hire me for remote Laravel roles](/about).*

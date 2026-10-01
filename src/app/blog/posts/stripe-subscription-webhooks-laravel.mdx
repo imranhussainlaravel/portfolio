@@ -1,6 +1,6 @@
 ---
 title: "Stripe is the source of truth, not your database"
-summary: "Notes from building a subscription lifecycle in Laravel: why webhook handling - not checkout - is the part that decides whether your billing is correct."
+summary: "Treat Stripe as the source of truth, not your database. How to keep Laravel subscription state in sync using Stripe webhooks."
 publishedAt: "2025-07-02"
 tag: "Laravel"
 ---
@@ -96,3 +96,16 @@ properly, and it makes the happy path fall out for free.
 
 The failure modes here are quiet ones. Nobody files a ticket saying "I cancelled last month but
 you're still letting me in." You only find those by having the state be right in the first place.
+
+
+## Related articles
+
+- [Stripe Connect with Laravel: Platform Payments Guide](/blog/stripe-connect-laravel-platform-payments)
+- [Laravel Stripe Subscription Plan Changes and Proration](/blog/laravel-subscription-billing-proration-plan-changes)
+- [Idempotent Webhook Handling in Laravel (Stripe)](/blog/idempotent-webhook-handling-laravel)
+- [ROI LevelUp: Laravel Multi-Company SaaS Case Study](/work/roi-saas-business-management-platform)
+- [TrackPilot AI: Laravel Time-Tracking SaaS Case Study](/work/trackpilot-ai-remote-work-time-tracking)
+
+---
+
+*Need a backend built right? [Hire me for remote Laravel roles](/about).*

@@ -13,7 +13,7 @@ import {
   Media,
   Line,
 } from "@once-ui-system/core";
-import { baseURL, about, blog, person, baseKeywords } from "@/resources";
+import { baseURL, about, blog, person } from "@/resources";
 import { formatDate } from "@/utils/formatDate";
 import { getPosts } from "@/utils/utils";
 import { Metadata } from "next";
@@ -44,10 +44,10 @@ export async function generateMetadata({
 
   if (!post) return {};
 
-  const title = post.metadata.title;
+  const title = post.metadata.seoTitle || post.metadata.title;
   const description = post.metadata.summary;
   const image = post.metadata.image || `/api/og/generate?title=${encodeURIComponent(title)}`;
-  const url = `${baseURL}${blog.path}/${post.slug}`;
+  const url = `https://imranhussainportfolio.com${blog.path}/${post.slug}`;
 
   return {
     title,

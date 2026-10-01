@@ -54,14 +54,10 @@ export default function robots() {
       {
         userAgent: "*",
         allow: "/",
-        // /api/* is OG-image generation and RSS plumbing - no indexable content,
-        // and letting crawlers hammer the OG generator wastes render budget.
-        disallow: ["/api/"],
       },
       {
         userAgent: AI_CRAWLERS,
         allow: "/",
-        disallow: ["/api/"],
       },
     ],
     sitemap: `${baseURL}/sitemap.xml`,

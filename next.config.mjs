@@ -22,6 +22,21 @@ const nextConfig = {
     compiler: "modern",
     silenceDeprecations: ["legacy-js-api"],
   },
+  async redirects() {
+    return [
+      {
+        source: '/:path*',
+        has: [
+          {
+            type: 'host',
+            value: 'www.imranhussainportfolio.com',
+          },
+        ],
+        destination: 'https://imranhussainportfolio.com/:path*',
+        permanent: true,
+      },
+    ];
+  },
 };
 
 export default withMDX(nextConfig);

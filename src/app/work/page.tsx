@@ -1,23 +1,23 @@
 import { Column, Heading, Meta } from "@once-ui-system/core";
 import { JsonLd } from "@/components";
-import { baseURL, about, person, work, keywords } from "@/resources";
+import { baseURL, about, person, work } from "@/resources";
 import { Projects } from "@/components/work/Projects";
 
 import type { Metadata } from "next";
 
 export async function generateMetadata(): Promise<Metadata> {
-  const title = "Laravel Projects & SaaS Case Studies | Imran Hussain";
-  const description = "Explore backend case studies by Imran Hussain. See how I built robust Laravel architectures for POS systems, business formation platforms, and time-tracking SaaS.";
+  const title = "Laravel Case Studies & SaaS Projects | Imran Hussain";
+  const description = "Case studies of Laravel SaaS platforms, REST APIs, Stripe billing and POS systems built by Imran Hussain. Backend architecture, decisions and lessons.";
   return {
     title,
     description,
     alternates: {
-      canonical: `${baseURL}/work`,
+      canonical: "https://imranhussainportfolio.com/work",
     },
     openGraph: {
       title,
       description,
-      url: `${baseURL}/work`,
+      url: "https://imranhussainportfolio.com/work",
       type: "website",
       images: [
         {
@@ -58,8 +58,8 @@ export default function Work() {
           ],
         }}
       />
-      <Heading marginBottom="l" variant="heading-strong-xl" align="center">
-        {work.title}
+      <Heading as="h1" marginBottom="l" variant="heading-strong-xl" align="center">
+        Laravel case studies and SaaS projects
       </Heading>
       <Projects />
     </Column>

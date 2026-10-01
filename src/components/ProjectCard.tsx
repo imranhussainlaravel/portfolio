@@ -80,7 +80,7 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
                   style={{ margin: "0", width: "fit-content" }}
                   href={href}
                 >
-                  <Text variant="body-default-s">Read {title}</Text>
+                  <Text variant="body-default-s">Read the {title} Laravel case study</Text>
                 </SmartLink>
               )}
               {link && (

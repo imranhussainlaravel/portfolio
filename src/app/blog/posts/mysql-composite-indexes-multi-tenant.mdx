@@ -1,6 +1,6 @@
 ---
 title: "Your multi-tenant indexes are in the wrong order"
-summary: "In a tenant-scoped app every query starts with tenant_id, which changes what a useful composite index looks like. Column order, cardinality and the leftmost-prefix rule."
+summary: "Why column order matters in MySQL composite indexes for multi-tenant Laravel apps, and how to design indexes that match your queries."
 publishedAt: "2026-04-14"
 tag: "MySQL"
 ---
@@ -118,3 +118,14 @@ $table->unique(['tenant_id', 'slug']);
 Not `$table->unique('slug')`. Getting this wrong produces the worst kind of bug report — one
 tenant's data creation failing because of a value they cannot see, belonging to a tenant they do
 not know exists.
+
+
+## Related articles
+
+- [Laravel Multi-Tenant Scoping: Queries Global Scopes Miss](/blog/laravel-multi-tenant-tenant-scoping)
+- [Roles vs Permissions in Multi-Company Laravel SaaS](/blog/role-based-permissions-multi-company-saas)
+- [ROI LevelUp: Laravel Multi-Company SaaS Case Study](/work/roi-saas-business-management-platform)
+
+---
+
+*Need a backend built right? [Hire me for remote Laravel roles](/about).*

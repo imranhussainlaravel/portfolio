@@ -1,6 +1,6 @@
 ---
 title: "Designing a Laravel API a React frontend can actually use"
-summary: "Most API friction is not about REST purity. It is N+1 on serialization, inconsistent error shapes, and pagination that forces the client to guess."
+summary: "How to design a Laravel REST API that a React frontend can actually use: resources, pagination, errors and consistent responses."
 publishedAt: "2026-03-25"
 tag: "Laravel"
 ---
@@ -145,3 +145,12 @@ public function update(UpdateTaskRequest $request, Task $task): TaskResource
 One round trip instead of two, and no divergence between what the client believes and what the
 server stored. With React Query or SWR this is the difference between a smooth optimistic update
 and a visible flicker.
+
+
+## Related articles
+
+- [TrackPilot AI: Laravel Time-Tracking SaaS Case Study](/work/trackpilot-ai-remote-work-time-tracking)
+
+---
+
+*Need a backend built right? [Hire me for remote Laravel roles](/about).*

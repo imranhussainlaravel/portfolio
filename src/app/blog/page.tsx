@@ -1,8 +1,8 @@
-import { Column, Heading, Meta } from "@once-ui-system/core";
+import { Column, Heading, Text, Meta } from "@once-ui-system/core";
 import { JsonLd } from "@/components";
 import { Mailchimp } from "@/components";
 import { Posts } from "@/components/blog/Posts";
-import { baseURL, blog, person, newsletter, keywords } from "@/resources";
+import { baseURL, blog, person, newsletter } from "@/resources";
 
 import type { Metadata } from "next";
 
@@ -13,12 +13,12 @@ export async function generateMetadata(): Promise<Metadata> {
     title,
     description,
     alternates: {
-      canonical: `${baseURL}/blog`,
+      canonical: "https://imranhussainportfolio.com/blog",
     },
     openGraph: {
       title,
       description,
-      url: `${baseURL}/blog`,
+      url: "https://imranhussainportfolio.com/blog",
       type: "website",
       images: [
         {
@@ -59,9 +59,14 @@ export default function Blog() {
           ],
         }}
       />
-      <Heading marginBottom="l" variant="heading-strong-xl" marginLeft="24">
-        {blog.title}
-      </Heading>
+      <Column marginLeft="24" marginBottom="l">
+        <Heading as="h1" variant="heading-strong-xl" marginBottom="8">
+          {blog.title}
+        </Heading>
+        <Text variant="body-default-m" onBackground="neutral-weak">
+          Technical articles, tutorials, and deep dives. I write about building SaaS backends with Laravel, PHP, and MySQL, handling Stripe payments, and designing multi-tenant platforms.
+        </Text>
+      </Column>
       <Column fillWidth flex={1} gap="40">
         <Posts range={[1, 1]} thumbnail />
         <Posts range={[2, 3]} columns="2" thumbnail direction="column" />

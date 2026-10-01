@@ -14,7 +14,7 @@ import {
   Avatar,
   Line,
 } from "@once-ui-system/core";
-import { baseURL, about, person, work, baseKeywords } from "@/resources";
+import { baseURL, about, person, work } from "@/resources";
 import { formatDate } from "@/utils/formatDate";
 import { ScrollToHash, CustomMDX } from "@/components";
 import { Metadata } from "next";
@@ -43,10 +43,10 @@ export async function generateMetadata({
 
   if (!post) return {};
 
-  const title = `${post.metadata.title} - ${person.name}`;
+  const title = post.metadata.seoTitle || `${post.metadata.title} - ${person.name}`;
   const description = post.metadata.summary;
   const image = post.metadata.image || `/api/og/generate?title=${encodeURIComponent(post.metadata.title)}`;
-  const url = `${baseURL}${work.path}/${post.slug}`;
+  const url = `https://imranhussainportfolio.com${work.path}/${post.slug}`;
 
   return {
     title,

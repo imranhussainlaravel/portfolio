@@ -1,6 +1,6 @@
 ---
 title: "Plan changes are where subscription billing gets hard"
-summary: "Upgrades, downgrades, proration and trials each have a different correct answer. Choosing per transition instead of globally is what stops billing surprises."
+summary: "Plan changes are where subscription billing gets hard. Handling upgrades, downgrades and proration with Stripe in Laravel."
 publishedAt: "2025-12-11"
 tag: "Stripe"
 ---
@@ -134,3 +134,16 @@ if ($remote->status !== $sub->status) {
 
 Log every correction. A drift count that is normally zero and suddenly is not tells you a webhook
 handler broke — usually before any customer notices.
+
+
+## Related articles
+
+- [Stripe Connect with Laravel: Platform Payments Guide](/blog/stripe-connect-laravel-platform-payments)
+- [Stripe Subscription Webhooks in Laravel: Source of Truth](/blog/stripe-subscription-webhooks-laravel)
+- [Idempotent Webhook Handling in Laravel (Stripe)](/blog/idempotent-webhook-handling-laravel)
+- [ROI LevelUp: Laravel Multi-Company SaaS Case Study](/work/roi-saas-business-management-platform)
+- [TrackPilot AI: Laravel Time-Tracking SaaS Case Study](/work/trackpilot-ai-remote-work-time-tracking)
+
+---
+
+*Need a backend built right? [Hire me for remote Laravel roles](/about).*
