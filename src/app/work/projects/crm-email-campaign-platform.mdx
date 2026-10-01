@@ -27,8 +27,11 @@ I developed the backend functionality across three areas:
 - **Email campaign operations** - composing campaigns, targeting them against customer segments, and
   running the send
 
-## Notes
+## Outcome
 
-Keeping campaigns and CRM data in one schema means segmentation queries run against live customer
-state instead of an exported snapshot. That is the main reason to build the two together rather than
-integrate a separate mail tool.
+I engineered a unified backend system that tightly integrates CRM operations with advanced email campaign tooling, powered entirely by Laravel. I took ownership of the foundational customer management logic, defining the underlying records, their attributes, and the relational data structures necessary for dynamic workflow tracking. I built out the campaign engine to allow administrators to compose messages, target precise customer segments, and confidently execute bulk sends. The core architectural decision to keep campaign and CRM data within a single, shared MySQL schema was critical; it meant segmentation queries could consistently run against live, real-time customer state rather than relying on stale exported snapshots, proving that a unified data model heavily outweighs the convenience of bolting on separate external mailing tools.
+
+**Key facts:**
+- Stack: PHP, Laravel, MySQL
+- Ownership: CRM data structures, workflow pipelines, and campaign execution engine
+- Focus: Unified schema design for live customer segmentation

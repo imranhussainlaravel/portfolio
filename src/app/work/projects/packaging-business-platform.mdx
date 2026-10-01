@@ -40,8 +40,11 @@ internal admin application at `admin.nexonpackaging.com`. That is where incoming
 reviewed and priced, customers and orders are managed, and the business tracks work in progress -
 the operational half that customers never see.
 
-## Notes
+## Outcome
 
-Modelling quote-to-order as a first-class workflow, rather than bolting a "request a quote" form
-onto a normal cart, is what let the business run the whole operation out of one system instead of
-managing custom jobs over email.
+I engineered the complete quote-to-order platform for Nexon Packaging, delivering a unified Laravel backend that handles both B2B customer workflows and the internal administrative operations. I owned the architectural design of the core business logic, converting complex, unstructured quote requests involving dimensions, materials, and finishes into structured order pipelines. By building out a dedicated internal admin application, I enabled the business to seamlessly price requests and track work in progress securely. The entire system is backed by a relational MySQL database designed to maintain strict referential integrity across the order lifecycle. The primary trade-off encountered in this domain was the necessity of modelling a highly flexible quotation stage as a first-class workflow, which required far more upfront data design than a traditional e-commerce checkout flow.
+
+**Key facts:**
+- Stack: PHP, Laravel, MySQL
+- Ownership: Quote-to-order pipeline and internal admin portal
+- Focus: Custom B2B workflow architecture and relational data integrity
