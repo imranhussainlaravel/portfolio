@@ -2,11 +2,11 @@
   "name": "@once-ui-system/magic-portfolio",
   "version": "2.3.0",
   "scripts": {
-    "dev": "node api.js && next dev",
+    "dev": "next dev",
     "export": "next export",
-    "build": "node api.js && next build",
+    "build": "next build",
     "biome-write": "npx @biomejs/biome format --write .",
-    "start": "node api.js && next start",
+    "start": "next start",
     "lint": "next lint"
   },
   "dependencies": {
