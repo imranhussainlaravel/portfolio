@@ -75,7 +75,7 @@ const home: Home = {
   },
   subline: (
     <>
-      3+ years of experience engineering secure APIs, multi-tenant databases, and complex payment flows for platforms like Bizee and TrackPilot. Based in Lahore, available for remote backend roles. I turn complex business requirements into clean, tested Laravel code.
+      3+ years of experience engineering secure APIs, multi-tenant databases, and scalable web platforms like Bizee, TrackPilot, Nexon Packaging, and Netlik Light House. Based in Lahore, available for remote roles. I turn complex business requirements into clean, tested code.
     </>
   ),
 };

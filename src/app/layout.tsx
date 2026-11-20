@@ -107,6 +107,7 @@ export default async function RootLayout({
       <Providers>
         <Column
           as="body"
+          suppressHydrationWarning
           background="page"
           fillWidth
           style={{ minHeight: "100vh" }}

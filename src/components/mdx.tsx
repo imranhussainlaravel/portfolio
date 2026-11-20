@@ -77,8 +77,14 @@ function createImage({ alt, src, ...props }: MediaProps & { src: string }) {
   );
 }
 
-function slugify(str: string): string {
-  const strWithAnd = str.replace(/&/g, " and "); // Replace & with 'and'
+function slugify(str: any): string {
+  const text =
+    typeof str === "string"
+      ? str
+      : Array.isArray(str)
+        ? str.map((c) => (typeof c === "string" ? c : c?.props?.children || "")).join("")
+        : String(str || "");
+  const strWithAnd = text.replace(/&/g, " and "); // Replace & with 'and'
   return transliterate(strWithAnd, {
     lowercase: true,
     separator: "-", // Replace spaces with -

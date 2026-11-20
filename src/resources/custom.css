@@ -351,7 +351,7 @@
      and an inline style outranks any selector here. cover is already Media's
      default, so this only guards against that default changing underneath us. */
   object-fit: cover !important;
-  object-position: center;
+  object-position: top center !important;
 }
 
 /* ---------------------------------------------------------------------------
