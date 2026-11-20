@@ -104,6 +104,8 @@ export const Footer = () => {
                     href={item.link}
                     icon={item.icon}
                     tooltip={item.name}
+                    aria-label={`Imran Hussain on ${item.name}`}
+                    rel={item.link.startsWith("http") ? "me noopener" : undefined}
                     size="l"
                     variant="ghost"
                   />

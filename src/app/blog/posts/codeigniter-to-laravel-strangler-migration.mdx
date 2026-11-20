@@ -1,7 +1,9 @@
 ---
-title: "Running CodeIgniter and Laravel side by side without a rewrite"
-summary: "Run CodeIgniter and Laravel side by side and migrate gradually with the strangler pattern instead of a risky full rewrite."
+title: "Migrate CodeIgniter to Laravel: run both side by side without a rewrite"
+seoTitle: "Migrate CodeIgniter to Laravel Without a Rewrite"
+summary: "Migrate CodeIgniter to Laravel gradually with the strangler pattern: run both apps side by side and move routes over without a big rewrite."
 publishedAt: "2026-01-22"
+dateModified: "2026-11-20"
 tag: "Laravel"
 ---
 
@@ -12,6 +14,12 @@ complete list of them.
 
 The alternative is the strangler pattern: put both applications behind one domain, move one
 feature at a time, and let the old system shrink until it is worth deleting.
+
+## Key Takeaways
+
+- Use reverse proxy routing (Nginx `^~` prefix matching) to route migrated paths to Laravel while falling back to legacy PHP.
+- Share user sessions in Redis so authenticated users cross seamlessly between both frameworks without re-logging in.
+- Model the existing legacy database schema directly in Eloquent; never alter legacy column names while CodeIgniter is active.
 
 ## The routing seam
 
@@ -64,7 +72,7 @@ are trying to stop touching, and it couples the two deployments together.
 Both applications read and write the same schema throughout. This is the part that feels wrong and
 mostly isn't — it is what makes incremental migration possible at all.
 
-Two rules keep it manageable.
+Two rules keep it manageable:
 
 **Laravel does not own the schema yet.** Do not let it generate migrations that rename or drop
 columns the legacy app still uses. Model the existing schema as it is:
@@ -133,11 +141,25 @@ and if it is cancelled at eighty percent, the work is gone.
 Some systems never fully finish. A stable corner of the legacy app that nobody touches and that
 works is not a crisis. It is a rational place to stop.
 
+## Frequently Asked Questions
 
-## Related articles
+### What is the Strangler Fig pattern in PHP?
+The Strangler Fig pattern is an architectural migration technique where legacy applications are modernized incrementally. Instead of an all-or-nothing rewrite, new features and refactored endpoints are built in a modern framework (like Laravel) and placed alongside the legacy app behind a reverse proxy until the old system can be decommissioned.
 
-- [ROI LevelUp: Laravel Multi-Company SaaS Case Study](/work/roi-saas-business-management-platform)
+### How do you share user authentication sessions between CodeIgniter and Laravel?
+Configure both CodeIgniter and Laravel to point to a common Redis session store, configured with matching cookie names and domain scopes. A custom Laravel authentication Guard can read CodeIgniter's session serialization format, resolving the authenticated `User` model without forcing changes to the legacy codebase.
+
+### Can CodeIgniter and Laravel safely share the same database?
+Yes. During migration, both applications read and write to the same shared database schema. To prevent data corruption, maintain strict ownership per table: once an entity's write path is migrated to Laravel, the legacy app must only perform read queries against that table.
+
+## Related guides & articles
+
+- [Laravel Production Reliability: Queues, APIs & Resilience](/blog/laravel-production-reliability-guide)
+- [Laravel REST API Design for React: Resources & Pagination](/blog/laravel-rest-api-design-for-react-frontends)
+- [Bizee Partner Platform: Laravel API Case Study](/work/bizee-business-formation-partner-platform)
+- [Nexon Packaging: Laravel B2B Platform Case Study](/work/packaging-business-platform)
+- [ROI LevelUp: Multi-Company Laravel SaaS Case Study](/work/roi-saas-business-management-platform)
 
 ---
 
-*Need a backend built right? [Hire me for remote Laravel roles](/about).*
+*Planning a legacy PHP to Laravel migration? [Hire me for remote Laravel roles](/about).*

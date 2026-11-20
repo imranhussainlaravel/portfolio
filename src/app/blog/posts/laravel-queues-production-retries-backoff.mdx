@@ -1,7 +1,9 @@
 ---
 title: "Laravel queues in production: the settings you only learn by losing jobs"
-summary: "The Laravel queue settings you learn by losing jobs: retries, backoff, timeouts and failure handling for production."
+seoTitle: "Laravel Queue Retries, Backoff & Timeouts in Production"
+summary: "Laravel queue settings that prevent lost and duplicate jobs: tries, backoff, timeout vs retry_after, WithoutOverlapping, Horizon and restarts."
 publishedAt: "2026-05-29"
+dateModified: "2026-11-20"
 tag: "Laravel"
 ---
 
@@ -10,6 +12,12 @@ that nobody revisits it, and the defaults are wrong for production in ways that 
 a third-party API has a bad afternoon.
 
 Here is what I now set deliberately on anything that matters.
+
+## Key Takeaways
+
+- Set `tries` and `backoff` together; never retry instantly in a tight loop.
+- Keep `$timeout` strictly below the connection's `retry_after` to prevent phantom duplicate runs.
+- Run `php artisan queue:restart` on every deployment to ensure workers reload updated code.
 
 ## Tries and backoff are one decision, not two
 
@@ -103,6 +111,14 @@ public function middleware(): array
 `expireAfter` is not optional. Without it, a worker that dies while holding the lock leaves it
 held forever and that key never processes again. Set it above the job's timeout.
 
+### WithoutOverlapping vs ShouldBeUnique
+
+It is important to understand the boundary between `WithoutOverlapping` and `ShouldBeUnique`:
+- **WithoutOverlapping** is middleware that prevents concurrent *execution*. Multiple jobs may sit in the queue, but workers execute them serially by acquiring a lock on the key.
+- **ShouldBeUnique** prevents duplicate *dispatching*. If a job with the same unique key is already queued or executing, subsequent dispatch calls are silently discarded until it finishes.
+
+Use `ShouldBeUnique` for debouncing incoming dispatch signals (like frequent file upload triggers) and `WithoutOverlapping` to guard sensitive write workflows from race conditions.
+
 ## failed() is where you decide what "failed" means
 
 ```php
@@ -149,11 +165,25 @@ feel is *wait time*: how long the oldest job has been sitting. Horizon reports i
 it is the number worth alerting on. A `high` queue with a wait above a few seconds means you are
 under-provisioned right now, whatever the depth says.
 
+## Frequently Asked Questions
 
-## Related articles
+### What is the difference between a Laravel job's timeout and retry_after?
+`$timeout` defines how many seconds a worker process is allowed to execute a single job before terminating it. `retry_after` in `config/queue.php` specifies how long the queue driver waits before assuming a worker crashed and releasing the job back to the pool. If `$timeout` is higher than `retry_after`, a second worker can pick up and run the job while the first is still working.
 
-- [Idempotent Webhook Handling in Laravel (Stripe)](/blog/idempotent-webhook-handling-laravel)
+### How many times should a Laravel job retry?
+There is no universal retry count. Choose `$tries` in conjunction with a stepped `backoff()` array (such as `[30, 120, 600]` seconds). For time-sensitive jobs, use `retryUntil()` instead of static attempt counters.
+
+### Do I need to restart queue workers after a deploy?
+Yes. Queue workers are persistent CLI processes that load application code into memory once. Unless you execute `php artisan queue:restart`, workers will continue running pre-deploy code and trigger schema errors against new database migrations.
+
+## Related guides & articles
+
+- [Laravel Production Reliability: Queues, APIs & Resilience](/blog/laravel-production-reliability-guide)
+- [Laravel Multi-Tenant Global Scope: 5 Queries It Misses](/blog/laravel-multi-tenant-tenant-scoping)
+- [Idempotent Webhook Handling in Laravel (Stripe Example)](/blog/idempotent-webhook-handling-laravel)
+- [Laravel Third-Party API Integration: Retries & Timeouts](/blog/laravel-third-party-api-integration-resilience)
+- [TrackPilot AI: Laravel Time-Tracking SaaS Case Study](/work/trackpilot-ai-remote-work-time-tracking)
 
 ---
 
-*Need a backend built right? [Hire me for remote Laravel roles](/about).*
+*Need a resilient queue architecture built? [Hire me for remote Laravel roles](/about).*

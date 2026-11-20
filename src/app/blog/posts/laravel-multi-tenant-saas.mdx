@@ -1,0 +1,58 @@
+---
+title: "Laravel Multi-Tenant SaaS Architecture: The Complete Guide"
+seoTitle: "Laravel Multi-Tenant SaaS Architecture: The Complete Guide"
+summary: "Guide to single-database multi-tenancy in Laravel: scoping models, tenant isolation, queued jobs, composite indexes, and role-based permissions."
+publishedAt: "2026-11-20"
+tag: "Laravel"
+---
+
+Single-database multi-tenancy is the most cost-effective and scalable architecture for modern B2B SaaS applications. By keeping all tenants within a shared schema partitioned by `tenant_id`, teams avoid the operational overhead of running hundreds of distinct database migrations or maintaining dynamic connection pools.
+
+However, single-database multi-tenancy introduces a critical engineering responsibility: **absolute tenant data isolation**. A single query without a tenant condition or an un-scoped cache key can leak sensitive customer data across organizations.
+
+This guide connects the core pillars of building a production-grade multi-tenant SaaS platform in Laravel, from global query scopes to database indexing and granular access control.
+
+## Key Takeaways
+
+- Tenant global scopes must strictly throw exceptions when no tenant is resolved—never fall back to a full-table query.
+- Composite indexes in MySQL multi-tenant schemas must always place `tenant_id` as the leftmost column.
+- User roles belong on the pivot table between users and companies, not as a flat column on the user record.
+
+## 1. Safe Query Scoping & Eliminating Silent Leaks
+
+The foundation of single-database multi-tenancy in Laravel is a global scope appended to Eloquent models. However, standard global scopes fail silently in asynchronous contexts—such as queued background workers, Artisan console commands, and multi-tenant cache keys.
+
+To safeguard your data layer:
+1. Ensure your tenant scope throws a `TenantNotResolvedException` whenever `TenantContext::id()` is null.
+2. Explicitly serialize the tenant ID into queued jobs and restore the tenant context within the job's `handle()` method.
+3. Namespace all cache keys, Redis locks, and rate limiters with a tenant prefix (e.g., `t{tenant_id}.invoices.count`).
+
+For a line-by-line breakdown of where Laravel scopes fail and how to patch them, read the deep dive:
+👉 [Laravel Multi-Tenant Global Scope: 5 Queries It Misses](/blog/laravel-multi-tenant-tenant-scoping)
+
+## 2. High-Performance MySQL Indexing for Multi-Tenant Tables
+
+When every query on a multi-million row table filters by `where tenant_id = ?`, your database indexing strategy determines whether requests respond in 15 milliseconds or time out completely.
+
+The **leftmost prefix rule** in MySQL dictates that composite indexes must begin with `tenant_id`, followed by high-cardinality filtering columns and sorting timestamps (e.g., `['tenant_id', 'project_id', 'created_at']`). Furthermore, creating covering indexes allows MySQL to resolve queries entirely from the index tree without touching table row storage.
+
+Learn how to inspect execution plans with `EXPLAIN ANALYZE` and order multi-tenant indexes correctly:
+👉 [MySQL Composite Index Order for Multi-Tenant Laravel Apps](/blog/mysql-composite-indexes-multi-tenant)
+
+## 3. Modeling Multi-Company Roles and Permissions
+
+In multi-tenant SaaS, users rarely hold a single universal role. A consultant or agency account may act as an `Admin` in Company A while remaining a restricted `Viewer` in Company B.
+
+Placing a `role` column directly on your `users` table breaks down the moment a user belongs to more than one workspace. Instead, model roles on the `company_user` pivot relationship, map roles to granular permissions in memory, and intercept authorization using Laravel's `Gate::before`.
+
+Read how to implement multi-company authorization without permission table bloat:
+👉 [Laravel Roles vs Permissions in Multi-Company SaaS](/blog/role-based-permissions-multi-company-saas)
+
+## Real-World Implementation
+
+I applied this multi-tenant architecture while engineering **ROI LevelUp**, an all-in-one business management platform serving multiple companies with unified CRM, outreach, and automated Stripe billing:
+👉 [ROI LevelUp: Multi-Company Laravel SaaS Case Study](/work/roi-saas-business-management-platform)
+
+---
+
+*Need an experienced engineer to architect or audit your multi-tenant Laravel SaaS? [Hire me for remote Laravel roles](/about).*

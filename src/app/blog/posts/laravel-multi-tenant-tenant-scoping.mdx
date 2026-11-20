@@ -1,7 +1,9 @@
 ---
 title: "Multi-tenant Laravel: the queries your global scope doesn't cover"
-summary: "Global scopes don't cover every query. See where Laravel multi-tenant scoping leaks data and how to close the gaps safely."
+seoTitle: "Laravel Multi-Tenant Global Scope: 5 Queries It Misses"
+summary: "Laravel's tenant global scope silently skips queued jobs, Artisan, cache keys and admin tools. Five tenant-leak gaps and how to close each."
 publishedAt: "2026-07-08"
+dateModified: "2026-11-20"
 tag: "Laravel"
 ---
 
@@ -11,6 +13,12 @@ owned table, a global scope that appends the `where` clause, and you are done in
 Except the global scope is the easy ninety percent. The interesting question is not "how do I
 scope a query" — it is "where does my scope silently not run", because that is the only place a
 tenant leak can come from.
+
+## Key Takeaways
+
+- A null tenant must throw an exception immediately—never default to querying all tenants.
+- Queued jobs must carry the tenant ID, setting the tenant context before models are re-fetched.
+- Cache keys, locks, and rate limiters must be explicitly tenant-prefixed.
 
 ## The scope itself
 
@@ -62,6 +70,8 @@ development, instead of quietly on a Tuesday in production.
 Tenant context is usually set by HTTP middleware. A queued job has no request, so by the time the
 worker picks it up, the middleware never ran and `id()` is null.
 
+There is a second reason to pass IDs instead of models. When a job uses `SerializesModels`, the worker re-fetches the model by ID when the job runs, and that query goes through your global scope before any tenant context exists. With a strict scope it throws; with a lenient one it can return nothing or the wrong rows.
+
 Don't pass the model and hope. Pass the tenant id explicitly and re-establish context:
 
 ```php
@@ -81,7 +91,7 @@ class GenerateMonthlyInvoices implements ShouldQueue
 `runFor` sets the tenant, runs the closure, and restores the previous value in a `finally`. The
 restore matters: a worker process is long-lived and handles jobs for many tenants in sequence. A
 job that sets context and never clears it hands its tenant to whatever job runs next on that
-worker.
+worker. For more on tuning workers safely, see my guide to [Laravel Queue Retries, Backoff & Timeouts in Production](/blog/laravel-queues-production-retries-backoff).
 
 ## Gap three: Artisan and scheduled commands
 
@@ -96,7 +106,7 @@ Tenant::query()->each(function (Tenant $tenant) {
 
 The `Tenant` model itself should not use the trait. It is the thing being scoped by, not scoped.
 
-## Gap four: cache keys
+## Gap four: cache keys, locks & rate limiters
 
 This one bites hardest because it survives a correct database layer. Every query can be perfectly
 scoped and you still serve tenant A's data to tenant B if the cache key is shared:
@@ -118,8 +128,13 @@ public function remember(string $key, int $ttl, Closure $cb)
 }
 ```
 
-The same applies to anything else keyed by string: rate limiters, locks, temporary file paths,
-and full-page caches.
+The same rule applies to anything else keyed by string: locks, rate limiter keys, and search indexes must share the same tenant prefix:
+
+```php
+// tenant-scoped lock and rate limiter
+Cache::lock("t{$tenantId}.invoice.generation", 10)->get();
+RateLimiter::attempt("t{$tenantId}.api-export:{$userId}", $maxAttempts = 5, fn () => $this->export());
+```
 
 ## Gap five: the admin panel
 
@@ -153,12 +168,24 @@ Write it once as a shared assertion and run it against every tenant-owned model.
 cheapest insurance in the codebase, and it fails the moment someone adds a model and forgets
 the trait.
 
+## Frequently Asked Questions
 
-## Related articles
+### Does a Laravel global scope apply inside queued jobs?
+The scope runs whenever the model is queried, but it needs a resolved tenant. A background worker has no incoming HTTP request, so pass the tenant ID explicitly into the queued job and establish the tenant context inside `handle()` before querying.
 
+### What should a tenant scope do when no tenant is resolved?
+Throw an exception. Adding no `where` clause when a tenant is unauthenticated turns an unresolved tenant into a silent full-table read, leaking private records across organizations.
+
+### How do I test for tenant leaks in Laravel?
+Create database rows for two separate tenants within a test fixture and assert that each tenant can only read its own record count, implemented as a shared test trait run against every tenant-owned model in your application.
+
+## Related guides & articles
+
+- [Laravel Multi-Tenant SaaS Architecture: The Complete Guide](/blog/laravel-multi-tenant-saas)
 - [MySQL Composite Index Order for Multi-Tenant Laravel Apps](/blog/mysql-composite-indexes-multi-tenant)
-- [Roles vs Permissions in Multi-Company Laravel SaaS](/blog/role-based-permissions-multi-company-saas)
-- [ROI LevelUp: Laravel Multi-Company SaaS Case Study](/work/roi-saas-business-management-platform)
+- [Laravel Roles vs Permissions in Multi-Company SaaS](/blog/role-based-permissions-multi-company-saas)
+- [Laravel Queue Retries, Backoff & Timeouts in Production](/blog/laravel-queues-production-retries-backoff)
+- [ROI LevelUp: Multi-Company Laravel SaaS Case Study](/work/roi-saas-business-management-platform)
 
 ---
 

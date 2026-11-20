@@ -20,8 +20,32 @@ import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
   metadataBase: new URL(baseURL),
-  title: home.title,
-  description: home.description,
+  title: {
+    default: "Imran Hussain | Laravel & PHP Software Engineer, Lahore",
+    template: "%s | Imran Hussain",
+  },
+  description:
+    "Software engineer in Lahore, Pakistan. 3+ years building Laravel and PHP SaaS backends, REST APIs and Stripe Connect billing. Open to remote roles.",
+  alternates: { canonical: "/" },
+  robots: { index: true, follow: true, "max-image-preview": "large", "max-snippet": -1 },
+  openGraph: {
+    type: "website",
+    siteName: "Imran Hussain",
+    locale: "en_US",
+    url: baseURL,
+    images: [
+      {
+        url: "/api/og/generate?title=Imran%20Hussain%20%7C%20Laravel%20%26%20PHP%20Software%20Engineer",
+        width: 1200,
+        height: 630,
+        alt: "Imran Hussain | Laravel & PHP Software Engineer",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    images: ["/api/og/generate?title=Imran%20Hussain%20%7C%20Laravel%20%26%20PHP%20Software%20Engineer"],
+  },
 };
 
 export default async function RootLayout({

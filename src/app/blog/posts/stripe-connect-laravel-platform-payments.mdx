@@ -1,7 +1,9 @@
 ---
-title: "Stripe Connect: your platform is now a payments company"
-summary: "What changes when your Laravel platform handles marketplace payments with Stripe Connect: responsibilities, flows, commissions and pitfalls."
+title: "Stripe Connect in Laravel: your platform is now a payments company"
+seoTitle: "Stripe Connect in Laravel: Destination vs Direct Charges"
+summary: "Stripe Connect with Laravel: onboarding state, destination vs direct charges, application fees, refunds that reverse transfers, payouts."
 publishedAt: "2026-05-06"
+dateModified: "2026-11-20"
 tag: "Stripe"
 ---
 
@@ -10,6 +12,12 @@ did the right connected account receive it, did the platform take the right fee,
 liable when it reverses.
 
 That last one is the part people discover late.
+
+## Key Takeaways
+
+- Track `charges_enabled` and `payouts_enabled` independently; an account can accept charges while payouts remain blocked.
+- Destination charges default to displaying the platform on bank statements unless `on_behalf_of` is explicitly passed.
+- Refunding a destination charge does not automatically reverse application fees or claw back seller transfers unless you specify `refund_application_fee` and `reverse_transfer`.
 
 ## Onboarding is a state machine, not a redirect
 
@@ -57,10 +65,11 @@ $stripe->paymentIntents->create([
 ]);
 ```
 
-The customer sees your platform on their statement. You own disputes. You own refunds. Your
-platform account carries the risk.
+By default the customer sees your platform on their statement. Setting `on_behalf_of` to the connected account changes the statement descriptor, contact details and settlement currency to the seller's.
 
-**Direct charges** — the charge happens on the connected account:
+For destination charges, Stripe debits disputes and fees directly from the platform account, which is why the platform carries the ultimate financial risk.
+
+**Direct charges** — the charge happens directly on the connected account:
 
 ```php
 $stripe->paymentIntents->create([
@@ -76,6 +85,12 @@ account instead. Money moves to the wrong place with no error.
 
 Marketplaces where the buyer thinks they are buying from the platform want destination charges.
 Software platforms where the seller is clearly the merchant want direct charges.
+
+## Separate charges and transfers
+
+There is a third Connect charge pattern: **Separate Charges and Transfers**. In this flow, the platform takes the full payment on its own account first, and subsequently moves funds to one or more connected accounts using `$stripe->transfers->create(...)`.
+
+This flow is indispensable when a single checkout cart contains goods from multiple distinct sellers, or when payouts must be held until physical fulfillment is verified. It is the most flexible pattern, but requires the platform to manage timing, multi-party accounting, and partial refund math manually.
 
 ## The fee is in cents, and rounding is your problem
 
@@ -102,7 +117,7 @@ application fee stays with you unless you say otherwise:
 
 ```php
 $stripe->refunds->create([
-    'payment_intent'        => $intent->id,
+    'payment_intent'         => $intent->id,
     'refund_application_fee' => true,
     'reverse_transfer'       => true,
 ]);
@@ -133,15 +148,25 @@ verification flow with its documents, deadlines and rejections is where the bugs
 the part your sellers will actually experience. Run at least one connected account through the
 full flow, including a rejection, before launch.
 
+## Frequently Asked Questions
 
-## Related articles
+### What is the difference between destination and direct charges in Stripe Connect?
+Destination charges charge the customer on the platform's account and transfer funds to the connected account, leaving the platform liable for chargebacks and refunds. Direct charges process directly on the connected account, making the seller the merchant of record who absorbs dispute risk.
 
-- [Stripe Subscription Webhooks in Laravel: Source of Truth](/blog/stripe-subscription-webhooks-laravel)
-- [Laravel Stripe Subscription Plan Changes and Proration](/blog/laravel-subscription-billing-proration-plan-changes)
-- [Idempotent Webhook Handling in Laravel (Stripe)](/blog/idempotent-webhook-handling-laravel)
-- [ROI LevelUp: Laravel Multi-Company SaaS Case Study](/work/roi-saas-business-management-platform)
-- [TrackPilot AI: Laravel Time-Tracking SaaS Case Study](/work/trackpilot-ai-remote-work-time-tracking)
+### Does refunding a Stripe charge refund my application fee?
+Not by default. When issuing a refund via the Stripe API, you must explicitly pass `'refund_application_fee' => true` to return your platform fee and `'reverse_transfer' => true` to pull funds back from the seller's account.
+
+### Why is a seller's payout smaller than their gross sales?
+A seller's payout reflects settled funds minus platform application fees, payment processing fees, and any prior negative balances caused by charge reversals or refunds. Reconciling payouts against Stripe's balance events prevents confusion.
+
+## Related guides & articles
+
+- [Stripe in Laravel Guide: Connect, Subscriptions & Webhooks](/blog/stripe-laravel-guide)
+- [Idempotent Webhook Handling in Laravel (Stripe Example)](/blog/idempotent-webhook-handling-laravel)
+- [Laravel Stripe Subscription Webhooks: Keep State in Sync](/blog/stripe-subscription-webhooks-laravel)
+- [Laravel Stripe Plan Changes: Proration Without Surprises](/blog/laravel-subscription-billing-proration-plan-changes)
+- [ROI LevelUp: Multi-Company Laravel SaaS Case Study](/work/roi-saas-business-management-platform)
 
 ---
 
-*Need a backend built right? [Hire me for remote Laravel roles](/about).*
+*Need an experienced Stripe Connect engineer? [Hire me for remote Laravel roles](/about).*

@@ -57,9 +57,10 @@ const home: Home = {
   path: "/",
   image: "/images/og/home.jpg",
   label: "Home",
-  title: `${person.name} - Full-Stack Engineer | Laravel & PHP`,
-  description: `Portfolio of ${person.name}, a full-stack engineer with backend depth - SaaS platforms, REST APIs, and Stripe payment systems built on Laravel and PHP`,
-  headline: <>Imran Hussain &ndash; Full-Stack Laravel Developer Building Scalable SaaS Backends</>,
+  title: "Imran Hussain | Laravel & PHP Software Engineer, Lahore",
+  description:
+    "Software engineer in Lahore, Pakistan. 3+ years building Laravel and PHP SaaS backends, REST APIs and Stripe Connect billing. Open to remote roles.",
+  headline: <>Imran Hussain, Software Engineer (Laravel &amp; PHP) in Lahore, Pakistan</>,
   featured: {
     display: true,
     title: (
@@ -75,7 +76,7 @@ const home: Home = {
   },
   subline: (
     <>
-      3+ years of experience engineering secure APIs, multi-tenant databases, and scalable web platforms like Bizee, TrackPilot, Nexon Packaging, and Netlik Light House. Based in Lahore, available for remote roles. I turn complex business requirements into clean, tested code.
+      Software engineer with 3+ years of experience building production web applications and backend systems at Applicon Soft. Specialized in Laravel, REST APIs, and Stripe Connect billing. Based in Lahore, Pakistan &ndash; open to remote roles worldwide.
     </>
   ),
 };
@@ -83,8 +84,9 @@ const home: Home = {
 const about: About = {
   path: "/about",
   label: "About",
-  title: `About - ${person.name}`,
-  description: `Meet ${person.name}, a full-stack engineer with backend depth, based in Lahore, Pakistan`,
+  title: "About Imran Hussain | Software Engineer, Laravel & PHP, Lahore",
+  description:
+    "Imran Hussain is a Laravel and PHP software engineer in Lahore with 3+ years at Applicon Soft: SaaS backends, REST APIs, Stripe Connect, React and Next.js.",
   tableOfContent: {
     display: true,
     subItems: false,
@@ -98,9 +100,9 @@ const about: About = {
   },
   resume: {
     display: true,
-    link: "/imran_hussain_resume.pdf",
+    link: "/imran-hussain-laravel-software-engineer-cv.pdf",
     label: "Download CV",
-    filename: "imran_hussain_resume.pdf",
+    filename: "imran-hussain-laravel-software-engineer-cv.pdf",
   },
   intro: {
     display: true,
@@ -234,7 +236,7 @@ const about: About = {
         images: [
           {
             src: "/images/projects/bizee/cover-01.jpg",
-            alt: "Bizee - US Business Formation Partner Platform",
+            alt: "US business formation and partner API integration preview",
             width: 16,
             height: 9,
           },
@@ -252,7 +254,7 @@ const about: About = {
         images: [
           {
             src: "/images/projects/zaaddocs/cover-01.jpg",
-            alt: "ZaadDOCS - POS & Financial Management System",
+            alt: "POS and double-entry financial database schema architecture",
             width: 16,
             height: 9,
           },
@@ -276,7 +278,7 @@ const about: About = {
         images: [
           {
             src: "/images/projects/trackpilot/cover-01.jpg",
-            alt: "TrackPilot AI - Remote Work & Time Tracking SaaS",
+            alt: "Stripe Connect subscription billing and tracking architecture preview",
             width: 16,
             height: 9,
           },

@@ -25,77 +25,75 @@ export const PersonSchema = () => {
 
   const data = {
     "@context": "https://schema.org",
-    "@type": "Person",
-    "@id": `${baseURL}/#person`,
-    name: person.name,
-    givenName: person.firstName,
-    familyName: person.lastName,
-    // Handles are how people actually search for him alongside the real name.
-    alternateName: ["imranhussainlaravel", "imranhussainphp", "dgeimran"],
-    url: baseURL,
-    mainEntityOfPage: `${baseURL}${about.path}`,
-    image: `${baseURL}${person.avatar}`,
-    jobTitle: person.role,
-    description:
-      "Full-stack software engineer in Lahore, Pakistan with 3+ years of professional " +
-      "experience. Backend depth in PHP, Laravel and MySQL - REST APIs, Stripe and Stripe " +
-      "Connect billing, queues and background processing, multi-tenant SaaS architecture - " +
-      "plus React and Next.js frontends.",
-    email: `mailto:${person.email}`,
-    worksFor: {
-      "@type": "Organization",
-      name: "Applicon Soft",
-      url: "https://www.appliconsoft.com",
-    },
-    alumniOf: {
-      "@type": "CollegeOrUniversity",
-      name: "Superior University",
-      address: {
-        "@type": "PostalAddress",
-        addressLocality: "Lahore",
-        addressCountry: "PK",
+    "@graph": [
+      {
+        "@type": "WebSite",
+        "@id": `${baseURL}/#website`,
+        "url": `${baseURL}/`,
+        "name": "Imran Hussain",
+        "inLanguage": "en",
+        "publisher": { "@id": `${baseURL}/#person` },
       },
-    },
-    address: {
-      "@type": "PostalAddress",
-      addressLocality: "Lahore",
-      addressRegion: "Punjab",
-      addressCountry: "PK",
-    },
-    nationality: { "@type": "Country", name: "Pakistan" },
-    knowsLanguage: ["English", "Urdu"],
-    // knowsAbout is what an AI assistant reads to decide what he is an
-    // authority on. Keep it to things genuinely evidenced by the work section -
-    // padding it with unrelated technologies dilutes every real entry.
-    knowsAbout: [
-      "Laravel",
-      "PHP",
-      "MySQL",
-      "REST API design",
-      "Stripe",
-      "Stripe Connect",
-      "Webhooks",
-      "Subscription billing",
-      "Multi-tenant SaaS architecture",
-      "Backend development",
-      "Full-stack development",
-      "React",
-      "Next.js",
-      "Redis",
-      "Docker",
-      "CodeIgniter",
-      "Database design",
-      "Queues and background processing",
+      {
+        "@type": "Person",
+        "@id": `${baseURL}/#person`,
+        "name": person.name,
+        "givenName": person.firstName,
+        "familyName": person.lastName,
+        "alternateName": ["imranhussainlaravel", "imranhussainphp", "dgeimran"],
+        "url": `${baseURL}/`,
+        "mainEntityOfPage": `${baseURL}${about.path}`,
+        "image": `${baseURL}${person.avatar}`,
+        "jobTitle": "Software Engineer (Laravel & PHP)",
+        "description":
+          "Software engineer in Lahore, Pakistan building Laravel and PHP SaaS backends, REST APIs and Stripe Connect billing.",
+        "email": `mailto:${person.email}`,
+        "worksFor": {
+          "@type": "Organization",
+          "name": "Applicon Soft",
+          "url": "https://www.appliconsoft.com",
+        },
+        "alumniOf": {
+          "@type": "CollegeOrUniversity",
+          "name": "Superior University",
+          "address": {
+            "@type": "PostalAddress",
+            "addressLocality": "Lahore",
+            "addressCountry": "PK",
+          },
+        },
+        "address": {
+          "@type": "PostalAddress",
+          "addressLocality": "Lahore",
+          "addressRegion": "Punjab",
+          "addressCountry": "PK",
+        },
+        "nationality": { "@type": "Country", name: "Pakistan" },
+        "knowsLanguage": ["English", "Urdu"],
+        "knowsAbout": [
+          "Laravel",
+          "PHP",
+          "MySQL",
+          "REST APIs",
+          "Stripe Connect",
+          "Multi-tenant SaaS",
+          "Queues and webhooks",
+          "React",
+          "Next.js",
+          "Redis",
+          "Docker",
+        ],
+        "sameAs": sameAs,
+      },
     ],
-    sameAs,
   };
 
   return (
     <script
       type="application/ld+json"
-      // JSON.stringify output is escaped by definition; there is no user input
-      // in this object, every value is a literal from resources/.
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(data) }}
+      dangerouslySetInnerHTML={{
+        __html: JSON.stringify(data).replace(/</g, "\\u003c"),
+      }}
     />
   );
 };

@@ -1,7 +1,9 @@
 ---
-title: "Stripe is the source of truth, not your database"
-summary: "Treat Stripe as the source of truth, not your database. How to keep Laravel subscription state in sync using Stripe webhooks."
+title: "Laravel Stripe webhooks: Stripe is the source of truth, not your database"
+seoTitle: "Laravel Stripe Subscription Webhooks: Keep State in Sync"
+summary: "Keep Laravel subscription state in sync with Stripe webhooks: derive access, verify signatures on the raw body and treat Stripe as truth."
 publishedAt: "2025-07-02"
+dateModified: "2026-11-20"
 tag: "Laravel"
 ---
 
@@ -11,6 +13,12 @@ uncomfortable part: checkout was maybe ten percent of the problem.
 
 The other ninety percent is everything that happens *after* the first successful payment, none of
 which starts in your application.
+
+## Key Takeaways
+
+- Treat Stripe as the definitive billing authority; store local state as a synchronized mirror rather than an independent truth.
+- Derive access programmatically through an `isUsable()` policy method rather than maintaining mutable boolean columns.
+- Keep `past_due` accounts active during Stripe Smart Retries to avoid locking paying customers out mid-workday.
 
 ## The state you don't control
 
@@ -31,32 +39,12 @@ one is bad in a way nobody reports to you.
 The fix is a framing change. Stripe holds the truth about billing. Your database holds a *cache* of
 that truth, and webhooks are how the cache stays warm.
 
-## Make handlers idempotent, because they will run twice
+## Handling duplicate webhooks cleanly
 
-Stripe does not guarantee exactly-once delivery. It guarantees *at least* once. Your handler will
-receive the same event twice, and it will receive events out of order.
+Stripe delivers webhooks under an at-least-once guarantee, meaning your receiver will inevitably encounter duplicate events. To prevent duplicate billing logic or concurrent race conditions, record each Stripe `event.id` atomically in your database before queuing.
 
-This means every handler has to be safe to run repeatedly. The practical version of that rule:
-record the event ID before you process it, and bail if you have seen it.
-
-```php
-public function handle(array $payload): void
-{
-    // Insert-first: a unique index on stripe_event_id makes the DB the arbiter,
-    // not a read-then-write check that two concurrent workers can both pass.
-    try {
-        ProcessedWebhookEvent::create(['stripe_event_id' => $payload['id']]);
-    } catch (UniqueConstraintViolationException) {
-        return; // Already handled.
-    }
-
-    $this->process($payload);
-}
-```
-
-The insert-first ordering matters. A `exists()` check followed by an insert is a race: two workers
-picking up duplicate deliveries can both read "not seen", both proceed, and both process the event.
-Letting the unique index reject the second one closes that window.
+For a full implementation of atomic deduplication and signature verification, read the dedicated guide:
+👉 [Idempotent Webhook Handling in Laravel (Stripe Example)](/blog/idempotent-webhook-handling-laravel)
 
 ## Derive access, don't store it
 
@@ -74,12 +62,25 @@ public function hasAccess(): bool
 
 Where `isUsable()` accounts for the states that should still grant access - `trialing`, `active`,
 and usually `past_due`, because a failed renewal that Stripe is still retrying is not yet a reason to
-cut someone off mid-workday.
+cut someone off mid-workday. States that immediately revoke access include `canceled`, `unpaid`, and `incomplete_expired`.
+
+```php
+public function isUsable(): bool
+{
+    return in_array($this->stripe_status, ['active', 'trialing', 'past_due'], true);
+}
+```
 
 The moment access is a stored boolean, you have as many places to get it wrong as you have writers.
 When it is derived, there is exactly one.
 
-## Verify signatures, and be careful with the body
+## Cashier or custom subscription modeling?
+
+Laravel Cashier provides out-of-the-box webhook routes and model traits that map subscriptions cleanly. 
+
+Using Cashier is recommended for typical single-tenant SaaS apps. Building custom subscription models, however, becomes necessary when supporting multi-tenant tenant hierarchies (such as account-level vs organization-level subscriptions), custom billing proration previews, or when integrating marketplace split payments alongside subscriptions.
+
+## Verify signatures on the raw body
 
 Webhook endpoints are public. Signature verification is what separates a real Stripe event from
 anyone who found your URL.
@@ -97,15 +98,25 @@ properly, and it makes the happy path fall out for free.
 The failure modes here are quiet ones. Nobody files a ticket saying "I cancelled last month but
 you're still letting me in." You only find those by having the state be right in the first place.
 
+## Frequently Asked Questions
 
-## Related articles
+### Should I store subscription status in my own database?
+Yes, but treat it as a read-cache of Stripe's canonical state. Storing the Stripe subscription ID, status (`active`, `past_due`, `canceled`), and current period end allows your application to authorize requests locally in microseconds without making outbound API calls to Stripe on every page load.
 
-- [Stripe Connect with Laravel: Platform Payments Guide](/blog/stripe-connect-laravel-platform-payments)
-- [Laravel Stripe Subscription Plan Changes and Proration](/blog/laravel-subscription-billing-proration-plan-changes)
-- [Idempotent Webhook Handling in Laravel (Stripe)](/blog/idempotent-webhook-handling-laravel)
-- [ROI LevelUp: Laravel Multi-Company SaaS Case Study](/work/roi-saas-business-management-platform)
-- [TrackPilot AI: Laravel Time-Tracking SaaS Case Study](/work/trackpilot-ai-remote-work-time-tracking)
+### Should a past_due customer keep access?
+In most B2B SaaS applications, yes. A `past_due` status occurs when a card renewal fails and Stripe initiates Smart Retries (which retry across 1 to 3 weeks). Revoking access immediately frustrates legitimate customers with temporary banking flags. Keeping `isUsable()` true for `past_due` accounts with a visible in-app warning banner minimizes involuntary churn.
+
+### Why does Stripe webhook signature verification fail in Laravel?
+Stripe computes the webhook signature using the exact raw HTTP payload bytes. In Laravel, if your endpoint runs through input-trimming middleware (`TrimStrings`, `ConvertEmptyStringsToNull`) or reads parsed JSON before signature validation, the payload bytes change and verification fails. Always pass `$request->getContent()` to Stripe's SDK.
+
+## Related guides & articles
+
+- [Stripe in Laravel Guide: Connect, Subscriptions & Webhooks](/blog/stripe-laravel-guide)
+- [Idempotent Webhook Handling in Laravel (Stripe Example)](/blog/idempotent-webhook-handling-laravel)
+- [Laravel Stripe Plan Changes: Proration Without Surprises](/blog/laravel-subscription-billing-proration-plan-changes)
+- [Stripe Connect in Laravel: Destination vs Direct Charges](/blog/stripe-connect-laravel-platform-payments)
+- [ROI LevelUp: Multi-Company Laravel SaaS Case Study](/work/roi-saas-business-management-platform)
 
 ---
 
-*Need a backend built right? [Hire me for remote Laravel roles](/about).*
+*Need to stabilize your SaaS subscription billing? [Hire me for remote Laravel roles](/about).*

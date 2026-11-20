@@ -25,6 +25,11 @@ const nextConfig = {
   async redirects() {
     return [
       {
+        source: '/imran_hussain_resume.pdf',
+        destination: '/imran-hussain-laravel-software-engineer-cv.pdf',
+        permanent: true,
+      },
+      {
         source: '/:path*',
         has: [
           {
@@ -34,6 +39,27 @@ const nextConfig = {
         ],
         destination: 'https://imranhussainportfolio.com/:path*',
         permanent: true,
+      },
+    ];
+  },
+  async headers() {
+    return [
+      {
+        source: '/(.*)',
+        headers: [
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff',
+          },
+          {
+            key: 'Referrer-Policy',
+            value: 'origin-when-cross-origin',
+          },
+          {
+            key: 'Strict-Transport-Security',
+            value: 'max-age=31536000; includeSubDomains',
+          },
+        ],
       },
     ];
   },

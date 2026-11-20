@@ -6,7 +6,7 @@ import { Projects } from "@/components/work/Projects";
 import type { Metadata } from "next";
 
 export async function generateMetadata(): Promise<Metadata> {
-  const title = "Laravel Case Studies & SaaS Projects | Imran Hussain";
+  const title = "Laravel & PHP Projects and Case Studies";
   const description = "Case studies of Laravel SaaS platforms, REST APIs, Stripe billing and POS systems built by Imran Hussain. Backend architecture, decisions and lessons.";
   return {
     title,

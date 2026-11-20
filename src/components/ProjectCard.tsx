@@ -23,6 +23,7 @@ interface ProjectCardProps {
 
 export const ProjectCard: React.FC<ProjectCardProps> = ({
   href,
+  priority,
   images = [],
   title,
   content,
@@ -42,6 +43,7 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
           edge to edge, so the frame never shows empty space.
           Keep this in step with the case study hero in app/work/[slug]. */}
       <Carousel
+        priority={priority}
         className="media-frame media-frame-fill media-frame-3d"
         aspectRatio="1919 / 837"
         sizes="(max-width: 960px) 100vw, 960px"

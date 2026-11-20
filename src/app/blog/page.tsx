@@ -7,7 +7,7 @@ import { baseURL, blog, person, newsletter } from "@/resources";
 import type { Metadata } from "next";
 
 export async function generateMetadata(): Promise<Metadata> {
-  const title = "Laravel & PHP Technical Blog | Imran Hussain";
+  const title = "Laravel & PHP Engineering Blog";
   const description = "Technical articles, tutorials, and deep dives on Laravel, PHP, MySQL, and backend architecture by software engineer Imran Hussain.";
   return {
     title,

@@ -1,13 +1,23 @@
 ---
 title: "Designing a Laravel API a React frontend can actually use"
-summary: "How to design a Laravel REST API that a React frontend can actually use: resources, pagination, errors and consistent responses."
+seoTitle: "Laravel REST API Design for React: Resources & Pagination"
+summary: "Design a Laravel REST API for React or Next.js: API resources, one error shape, cursor pagination, include allowlists and N+1 tests."
 publishedAt: "2026-03-25"
+dateModified: "2026-11-20"
 tag: "Laravel"
 ---
 
 I have built the Laravel side of enough React and Next.js dashboards to notice that the arguments
 are never about whether an endpoint is truly RESTful. They are about the same four things: shape
 consistency, error handling, pagination, and how many round trips a screen costs.
+
+The patterns below are written against **Laravel 11** (and compatible with Laravel 10), reflecting current conventions including exception rendering in `bootstrap/app.php` and strict Model safety checks.
+
+## Key Takeaways
+
+- Deliver one predictable data envelope and one uniform error shape across all HTTP status codes.
+- Assert constant query counts in automated test suites and enable `preventLazyLoading` in development.
+- Return the full updated resource from write operations (`PATCH`/`PUT`) so frontend client caches update without duplicate fetches.
 
 ## One envelope, always
 
@@ -30,7 +40,7 @@ class TaskResource extends JsonResource
 }
 ```
 
-Two details that save the frontend real work.
+Two details that save the frontend real work:
 
 `whenLoaded` omits the key entirely when the relation was not eager loaded — so the client can
 distinguish "not requested" from "null". It also stops a serializer from silently triggering a
@@ -47,16 +57,17 @@ Laravel gives you 422 validation errors in a good format for free:
 { "message": "The given data was invalid.", "errors": { "email": ["..."] } }
 ```
 
-The mistake is not matching it everywhere else. A 403 from a policy, a 404 from route binding, and
-a 500 from an exception should all be parseable by the same client code:
+The mistake is not matching it everywhere else. In Laravel 11's `bootstrap/app.php`, configure custom exception renders so a 403 from a policy, a 404 from route binding, and a 500 from a domain exception match the identical client contract:
 
 ```php
-$exceptions->render(function (DomainException $e) {
-    return response()->json([
-        'message' => $e->getMessage(),
-        'errors'  => [],
-    ], 422);
-});
+->withExceptions(function (Exceptions $exceptions) {
+    $exceptions->render(function (DomainException $e) {
+        return response()->json([
+            'message' => $e->getMessage(),
+            'errors'  => [],
+        ], 422);
+    });
+})
 ```
 
 If every failure has `message` and `errors`, the frontend writes one error handler. If it does
@@ -146,11 +157,25 @@ One round trip instead of two, and no divergence between what the client believe
 server stored. With React Query or SWR this is the difference between a smooth optimistic update
 and a visible flicker.
 
+## Frequently Asked Questions
 
-## Related articles
+### Should a PATCH endpoint return 204 or the updated resource?
+Returning the updated resource (e.g., `return TaskResource::make($task)`) with HTTP 200 is generally superior for frontend developer experience. It allows React Query, SWR, or RTK Query to update their client-side cache immediately in a single network round-trip, avoiding duplicate GET requests.
 
+### When should I use cursorPaginate instead of paginate?
+Use `cursorPaginate()` for high-volume datasets, real-time activity streams, or infinite-scroll feeds. Standard `paginate()` runs `OFFSET X`, which requires MySQL to scan and discard thousands of rows at high page numbers; cursor pagination queries against indexed column keys (e.g., `where id > X limit 50`), ensuring constant sub-millisecond response times.
+
+### How do I stop N+1 queries in a Laravel API?
+Add `Model::preventLazyLoading(! app()->isProduction())` in your `AppServiceProvider::boot()` method so lazy loads throw loud exceptions during development. In your test suite, assert constant query count bounds using `DB::getQueryLog()` to catch regressions before deployment.
+
+## Related guides & articles
+
+- [Laravel Production Reliability: Queues, APIs & Resilience](/blog/laravel-production-reliability-guide)
+- [Laravel Multi-Tenant Global Scope: 5 Queries It Misses](/blog/laravel-multi-tenant-tenant-scoping)
+- [MySQL Composite Index Order for Multi-Tenant Laravel Apps](/blog/mysql-composite-indexes-multi-tenant)
+- [Bizee Partner Platform: Laravel API Case Study](/work/bizee-business-formation-partner-platform)
 - [TrackPilot AI: Laravel Time-Tracking SaaS Case Study](/work/trackpilot-ai-remote-work-time-tracking)
 
 ---
 
-*Need a backend built right? [Hire me for remote Laravel roles](/about).*
+*Need an API built for a React or Next.js frontend? [Hire me for remote Laravel roles](/about).*

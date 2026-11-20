@@ -157,7 +157,11 @@ function createCodeBlock(props: any) {
 }
 
 function createList(as: "ul" | "ol") {
-  return ({ children }: { children: ReactNode }) => <List as={as}>{children}</List>;
+  return ({ children }: { children: ReactNode }) => (
+    <List as={as} marginBottom="16">
+      {children}
+    </List>
+  );
 }
 
 function createListItem({ children }: { children: ReactNode }) {
@@ -171,7 +175,7 @@ function createListItem({ children }: { children: ReactNode }) {
 function createHR() {
   return (
     <Row fillWidth horizontal="center">
-      <Line maxWidth="40" />
+      <Line style={{ maxWidth: 40 }} />
     </Row>
   );
 }

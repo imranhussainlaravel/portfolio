@@ -8,6 +8,7 @@ interface PostsProps {
   thumbnail?: boolean;
   direction?: "row" | "column";
   exclude?: string[];
+  include?: string[];
 }
 
 export function Posts({
@@ -15,9 +16,15 @@ export function Posts({
   columns = "1",
   thumbnail = false,
   exclude = [],
+  include = [],
   direction,
 }: PostsProps) {
   let allBlogs = getPosts(["src", "app", "blog", "posts"]);
+
+  // Include by slug (if specified)
+  if (include.length) {
+    allBlogs = allBlogs.filter((post) => include.includes(post.slug));
+  }
 
   // Exclude by slug (exact match)
   if (exclude.length) {

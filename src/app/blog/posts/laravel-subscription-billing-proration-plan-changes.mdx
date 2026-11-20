@@ -1,13 +1,21 @@
 ---
-title: "Plan changes are where subscription billing gets hard"
-summary: "Plan changes are where subscription billing gets hard. Handling upgrades, downgrades and proration with Stripe in Laravel."
+title: "Laravel subscription plan changes are where billing gets hard"
+seoTitle: "Laravel Stripe Plan Changes: Proration Without Surprises"
+summary: "How to handle Stripe plan changes in Laravel: proration, upgrades vs downgrades, billing timing and the edge cases that surprise customers."
 publishedAt: "2025-12-11"
+dateModified: "2026-11-20"
 tag: "Stripe"
 ---
 
 Charging a customer monthly is easy. What breaks is the day they move between plans, because a
 plan change is simultaneously a cancellation, a new subscription, and a money question — and the
 right answer differs depending on which direction they moved.
+
+## Key Takeaways
+
+- Treat upgrades and downgrades asymmetrically: upgrade immediately with an invoice, defer downgrades to the current billing period end.
+- Always preview prorations via Stripe's upcoming invoice API and display exact dollar figures on your confirmation screen.
+- Retain access during the `past_due` dunning period; only cancel accounts when `customer.subscription.deleted` arrives.
 
 ## Upgrade and downgrade are not symmetric
 
@@ -59,9 +67,9 @@ Stripe will tell you the exact amount before you commit to it:
 
 ```php
 $preview = $stripe->invoices->upcoming([
-    'customer'     => $customer->stripe_id,
-    'subscription' => $sub->stripe_id,
-    'subscription_items' => [['id' => $item->id, 'price' => $newPriceId]],
+    'customer'                    => $customer->stripe_id,
+    'subscription'                => $sub->stripe_id,
+    'subscription_items'          => [['id' => $item->id, 'price' => $newPriceId]],
     'subscription_proration_date' => now()->timestamp,
 ]);
 ```
@@ -135,15 +143,25 @@ if ($remote->status !== $sub->status) {
 Log every correction. A drift count that is normally zero and suddenly is not tells you a webhook
 handler broke — usually before any customer notices.
 
+## Frequently Asked Questions
 
-## Related articles
+### How does proration work when upgrading a plan in Stripe?
+When upgrading mid-cycle, Stripe calculates the unused time on the existing tier as a credit and bills the remaining time on the new plan as a debit. Setting `'proration_behavior' => 'always_invoice'` creates and attempts an immediate invoice for the net prorated difference.
 
-- [Stripe Connect with Laravel: Platform Payments Guide](/blog/stripe-connect-laravel-platform-payments)
-- [Stripe Subscription Webhooks in Laravel: Source of Truth](/blog/stripe-subscription-webhooks-laravel)
-- [Idempotent Webhook Handling in Laravel (Stripe)](/blog/idempotent-webhook-handling-laravel)
-- [ROI LevelUp: Laravel Multi-Company SaaS Case Study](/work/roi-saas-business-management-platform)
-- [TrackPilot AI: Laravel Time-Tracking SaaS Case Study](/work/trackpilot-ai-remote-work-time-tracking)
+### Should downgrades take effect immediately or at period end?
+In B2B SaaS, downgrades should almost always take effect at the end of the current billing cycle (`current_period_end`). Immediate downgrades require issuing account credits or cash refunds and invite plan hopping. Storing a `pending_plan` column allows customers to use the tier they already purchased while scheduling the change gracefully.
+
+### How do I preview a proration invoice in Laravel?
+Query the `$stripe->invoices->upcoming()` endpoint, passing the subscription ID, the target price ID, and an explicit timestamp for `subscription_proration_date`. Pass that exact timestamp to the subsequent update request to ensure the customer is charged the exact figure displayed on their confirmation dialog.
+
+## Related guides & articles
+
+- [Stripe in Laravel Guide: Connect, Subscriptions & Webhooks](/blog/stripe-laravel-guide)
+- [Idempotent Webhook Handling in Laravel (Stripe Example)](/blog/idempotent-webhook-handling-laravel)
+- [Laravel Stripe Subscription Webhooks: Keep State in Sync](/blog/stripe-subscription-webhooks-laravel)
+- [Stripe Connect in Laravel: Destination vs Direct Charges](/blog/stripe-connect-laravel-platform-payments)
+- [ROI LevelUp: Multi-Company Laravel SaaS Case Study](/work/roi-saas-business-management-platform)
 
 ---
 
-*Need a backend built right? [Hire me for remote Laravel roles](/about).*
+*Need to optimize SaaS subscription plans or billing logic? [Hire me for remote Laravel roles](/about).*

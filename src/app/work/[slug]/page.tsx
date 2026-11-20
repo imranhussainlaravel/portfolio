@@ -43,7 +43,9 @@ export async function generateMetadata({
 
   if (!post) return {};
 
-  const title = post.metadata.seoTitle || `${post.metadata.title} - ${person.name}`;
+  const rawTitle = post.metadata.seoTitle || `${post.metadata.title}: Laravel Case Study`;
+  const cleanTitle = rawTitle.replace(/\s*\|\s*Imran Hussain$/i, "");
+  const title = cleanTitle;
   const description = post.metadata.summary;
   const image = post.metadata.image || `/api/og/generate?title=${encodeURIComponent(post.metadata.title)}`;
   const url = `https://imranhussainportfolio.com${work.path}/${post.slug}`;
@@ -58,8 +60,9 @@ export async function generateMetadata({
       url,
       type: "article",
       publishedTime: post.metadata.publishedAt,
+      modifiedTime: post.metadata.publishedAt,
       authors: [person.name],
-      images: [{ url: image, alt: title }],
+      images: [{ url: image, alt: title, width: 1200, height: 630 }],
     },
     twitter: {
       card: "summary_large_image",
@@ -96,10 +99,45 @@ export default async function Project({
       <JsonLd
         data={{
           "@context": "https://schema.org",
-          "@type": "CreativeWork",
-          headline: post.metadata.title,
-          author: { "@id": `${baseURL}/#person` },
-          image: post.metadata.image || `/api/og/generate?title=${encodeURIComponent(post.metadata.title)}`,
+          "@graph": [
+            {
+              "@type": "BreadcrumbList",
+              itemListElement: [
+                {
+                  "@type": "ListItem",
+                  position: 1,
+                  name: "Home",
+                  item: baseURL,
+                },
+                {
+                  "@type": "ListItem",
+                  position: 2,
+                  name: "Work",
+                  item: `${baseURL}/work`,
+                },
+                {
+                  "@type": "ListItem",
+                  position: 3,
+                  name: post.metadata.title,
+                  item: `${baseURL}/work/${post.slug}`,
+                },
+              ],
+            },
+            {
+              "@type": "CreativeWork",
+              "@id": `${baseURL}/work/${post.slug}#case-study`,
+              name: post.metadata.title,
+              headline: post.metadata.seoTitle || post.metadata.title,
+              description: post.metadata.summary,
+              url: `${baseURL}/work/${post.slug}`,
+              datePublished: post.metadata.publishedAt,
+              dateModified: post.metadata.publishedAt,
+              author: { "@id": `${baseURL}/#person` },
+              publisher: { "@id": `${baseURL}/#person` },
+              image: post.metadata.image || `/api/og/generate?title=${encodeURIComponent(post.metadata.title)}`,
+              about: ["Laravel", "PHP", "MySQL", "REST APIs", "SaaS Architecture"],
+            },
+          ],
         }}
       />
       <Column maxWidth="s" gap="16" horizontal="center" align="center">
@@ -123,6 +161,42 @@ export default async function Project({
           </Row>
         )}
       </Column>
+
+      {/* At a glance block (Audit 4.12 & Section 6) */}
+      <Column maxWidth="s" fillWidth paddingX="16">
+        <Row
+          fillWidth
+          gap="16"
+          padding="16"
+          radius="l"
+          background="surface"
+          border="neutral-alpha-weak"
+          wrap
+          horizontal="between"
+        >
+          <Column gap="4" minWidth="120">
+            <Text variant="label-default-xs" onBackground="neutral-weak">Role</Text>
+            <Text variant="body-default-s" onBackground="neutral-strong">Backend / Full-Stack Engineer</Text>
+          </Column>
+          <Column gap="4" minWidth="120">
+            <Text variant="label-default-xs" onBackground="neutral-weak">Stack</Text>
+            <Text variant="body-default-s" onBackground="neutral-strong">Laravel · PHP · MySQL · APIs</Text>
+          </Column>
+          <Column gap="4" minWidth="100">
+            <Text variant="label-default-xs" onBackground="neutral-weak">Type</Text>
+            <Text variant="body-default-s" onBackground="neutral-strong">{post.metadata.tag || "Production SaaS"}</Text>
+          </Column>
+          {post.metadata.link && (
+            <Column gap="4" minWidth="100">
+              <Text variant="label-default-xs" onBackground="neutral-weak">Live Project</Text>
+              <SmartLink href={post.metadata.link} target="_blank" rel="noopener noreferrer">
+                <Text variant="body-default-s" onBackground="brand-strong">Visit Site ↗</Text>
+              </SmartLink>
+            </Column>
+          )}
+        </Row>
+      </Column>
+
       <Row marginBottom="32" horizontal="center">
         <Row gap="16" vertical="center">
           {post.metadata.team && <AvatarGroup reverse avatars={avatars} size="s" />}
@@ -163,11 +237,18 @@ export default async function Project({
         <CustomMDX source={post.content} />
       </Column>
       <Column fillWidth gap="40" horizontal="center" marginTop="40">
-        <Line maxWidth="40" />
+        <Line style={{ maxWidth: 40 }} />
         <Heading as="h2" variant="heading-strong-xl" marginBottom="24">
           Related projects
         </Heading>
         <Projects exclude={[post.slug]} range={[2]} />
+        <Row marginTop="16">
+          <SmartLink href="/blog">
+            <Text variant="label-default-m" onBackground="brand-strong">
+              Read engineering deep dives on the blog →
+            </Text>
+          </SmartLink>
+        </Row>
       </Column>
       <ScrollToHash />
     </Column>

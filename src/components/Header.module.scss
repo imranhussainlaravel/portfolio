@@ -18,4 +18,8 @@
         transform: rotate(180deg);
         bottom: 0;
     }
+
+    .navButton :global(.font-label) {
+        display: none !important;
+    }
 }

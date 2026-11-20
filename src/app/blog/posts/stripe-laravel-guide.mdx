@@ -1,0 +1,63 @@
+---
+title: "Stripe in Laravel Guide: Connect, Subscriptions & Webhooks"
+seoTitle: "Stripe in Laravel Guide: Connect, Subscriptions & Webhooks"
+summary: "In-depth guide to integrating Stripe in Laravel: marketplace split payments with Stripe Connect, subscription proration, and idempotent webhook pipelines."
+publishedAt: "2026-11-20"
+tag: "Laravel"
+---
+
+Integrating Stripe into a Laravel application begins simply with Stripe Checkout, but rapidly grows complex when architecting marketplace payouts, multi-party commissions, or tiered subscription billing. 
+
+Production payment systems must handle network partitions, duplicate webhooks, chargeback disputes, and proration calculations cleanly without corrupting financial records or locking accounts unfairly.
+
+This guide connects the four foundational disciplines of running production Stripe billing systems in Laravel.
+
+## Key Takeaways
+
+- Treat Stripe as the definitive source of truth for payment status; derive access locally without re-inventing status state machines.
+- Webhooks arrive at least once, never exactly once; enforce idempotency using unique Stripe event IDs before queuing.
+- For marketplace split payments, understand the legal and dispute liability differences between Destination Charges and Direct Charges.
+
+## 1. Idempotent Webhook Processing
+
+Webhooks operate under an **at-least-once delivery guarantee**. During transient network timeouts or Stripe retries, your endpoint will receive duplicate events. If your webhook handler executes side effects directly (such as provisioning seats or dispatching transactional emails), duplicates will double-charge or double-fulfill customers.
+
+To make webhook receivers bulletproof:
+1. Verify the raw request payload against the `Stripe-Signature` header before JSON decoding.
+2. Record incoming `event.id` values with an atomic unique database constraint.
+3. Queue background workers with exponential backoff and idempotency guards.
+
+See the complete implementation and Pest testing pattern:
+👉 [Idempotent Webhook Handling in Laravel (Stripe Example)](/blog/idempotent-webhook-handling-laravel)
+
+## 2. Stripe Connect: Marketplace Architecture & Split Payouts
+
+When building platforms that process payments on behalf of third-party vendors or contractors, **Stripe Connect** is the industry standard. 
+
+Choosing between **Destination Charges** (where the platform collects funds and pushes balances to connected accounts) and **Direct Charges** determines who holds chargeback liability, whose name appears on credit card statements, and how application fees are collected.
+
+Explore the architectural trade-offs and payout mechanics:
+👉 [Stripe Connect in Laravel: Destination vs Direct Charges](/blog/stripe-connect-laravel-platform-payments)
+
+## 3. Subscription Lifecycles & Synchronizing Status
+
+A customer's subscription moves through numerous states: `trialing`, `active`, `past_due`, `unpaid`, and `canceled`. Storing billing state in your local database without verifying raw webhook payloads causes desynchronization.
+
+By defining an explicit `isUsable()` access policy that gracefully accommodates grace periods during `past_due` payment retries, your application minimizes involuntary churn while protecting premium features:
+👉 [Laravel Stripe Subscription Webhooks: Keep State in Sync](/blog/stripe-subscription-webhooks-laravel)
+
+## 4. Handling Plan Changes, Upgrades & Prorations
+
+When a user upgrades from a Monthly Starter tier to an Annual Enterprise tier mid-cycle, Stripe calculates immediate proration credits. Handling prorations in Laravel requires understanding invoice timing, billing cycle anchors, and previewing charges before invoicing.
+
+Read how to swap subscription plans cleanly without billing surprises:
+👉 [Laravel Stripe Plan Changes: Proration Without Surprises](/blog/laravel-subscription-billing-proration-plan-changes)
+
+## Case Study
+
+See how these payment pipelines run in a multi-company SaaS platform:
+👉 [ROI LevelUp: Multi-Company Laravel SaaS Case Study](/work/roi-saas-business-management-platform)
+
+---
+
+*Building a marketplace or SaaS billing engine in Laravel? [Hire me for remote Laravel roles](/about).*

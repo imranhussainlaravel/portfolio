@@ -1,0 +1,61 @@
+---
+title: "Laravel Production Reliability: Queues, APIs & Resilience"
+seoTitle: "Laravel Production Reliability: Queues, APIs & Resilience"
+summary: "Engineering guide for mission-critical Laravel systems: queue worker retries, REST API contracts, third-party outage resilience, and legacy migrations."
+publishedAt: "2026-11-20"
+tag: "Laravel"
+---
+
+Writing functional code in local development is straightforward; ensuring that same application survives high traffic, failing third-party APIs, and memory leaks in production is where senior engineering begins.
+
+Production reliability in Laravel centers on defensive backend architecture: managing queue lifecycle limits, structuring deterministic REST API contracts for frontend clients, wrapping external HTTP dependencies in circuit breakers, and migrating legacy codebases incrementally without downtime.
+
+This guide connects four practical disciplines for engineering resilient Laravel backends.
+
+## Key Takeaways
+
+- Tune queue worker `tries`, `backoff`, and `timeout` together; always set `timeout` lower than the connection's `retry_after`.
+- Design REST APIs with uniform error envelopes and assert database query counts in automated tests to prevent N+1 queries.
+- Isolate external HTTP APIs with retries, timeouts, and fallbacks so third-party downtime never crashes customer-facing workflows.
+
+## 1. Asynchronous Queue Processing & Worker Tuning
+
+Laravel's queue system is exceptionally powerful, but misconfigured worker settings cause duplicate job execution, zombie worker processes, and lost messages.
+
+Key production rules:
+1. Always keep `$timeout` strictly below `retry_after` in your queue configuration to prevent secondary workers from picking up still-running jobs.
+2. Use exponential backoff (e.g., `public $backoff = [30, 120, 600];`) to avoid hammering rate-limited downstream APIs.
+3. Distinguish between `WithoutOverlapping` (preventing concurrent execution) and `ShouldBeUnique` (preventing duplicate dispatching).
+
+Read the comprehensive guide to tuning queue workers:
+👉 [Laravel Queue Retries, Backoff & Timeouts in Production](/blog/laravel-queues-production-retries-backoff)
+
+## 2. Robust REST API Architecture for React & Next.js
+
+When frontend applications consume Laravel APIs, consistency is critical. Frontend developers should never have to guess whether an endpoint wraps data in a `{ data: ... }` key or returns raw arrays.
+
+By standardizing on dedicated API Resources, consistent validation error structures, and cursor pagination for infinite scrolling, teams eliminate client-side parsing bugs while boosting throughput:
+👉 [Laravel REST API Design for React: Resources & Pagination](/blog/laravel-rest-api-design-for-react-frontends)
+
+## 3. Surviving Third-Party API Outages
+
+Every external service your backend depends on—from SMS providers and CRM webhooks to geolocation APIs—will eventually experience downtime or latency spikes.
+
+Learn how to configure Laravel's HTTP client with timeouts, retry backoffs, and circuit-breaker patterns to ensure external failures degrade gracefully rather than freezing your application:
+👉 [Laravel Third-Party API Integration: Retries & Timeouts](/blog/laravel-third-party-api-integration-resilience)
+
+## 4. Zero-Downtime Legacy Code Migrations
+
+Inheriting a monolithic legacy PHP application (such as CodeIgniter 3) is a common challenge. Attempting a complete "ground-up rewrite" frequently stalls releases and burns development budgets.
+
+By applying the **Strangler Fig pattern**, engineering teams can run legacy frameworks alongside Laravel under a single web server, routing endpoints to Laravel incrementally with zero downtime:
+👉 [Migrate CodeIgniter to Laravel Without a Rewrite](/blog/codeigniter-to-laravel-strangler-migration)
+
+## Related Case Studies
+
+- [TrackPilot AI: Laravel Time-Tracking SaaS Case Study](/work/trackpilot-ai-remote-work-time-tracking)
+- [Bizee Partner Platform: Laravel API Case Study](/work/bizee-business-formation-partner-platform)
+
+---
+
+*Need to harden your Laravel infrastructure or scale backend reliability? [Hire me for remote Laravel roles](/about).*

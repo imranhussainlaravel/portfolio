@@ -1,9 +1,13 @@
 ---
-title: "At-least-once means you will get the same webhook twice"
-summary: "Stripe delivers webhooks at least once, never exactly once. How to build an idempotent Laravel webhook receiver with a unique key, queues and transactions."
+title: "Idempotent webhook handling in Laravel: you will get the same event twice"
+seoTitle: "Idempotent Webhook Handling in Laravel (Stripe Example)"
+summary: "Webhooks arrive at least once, never exactly once. Build a Laravel receiver with raw-body signature checks, a unique event key and idempotent jobs."
 publishedAt: "2026-06-17"
+dateModified: "2026-11-20"
 tag: "Laravel"
 ---
+
+This is how I build a Laravel webhook receiver, using Stripe as the example, so that duplicate and out-of-order deliveries cannot corrupt your data.
 
 Every webhook provider worth using guarantees at-least-once delivery. None of them guarantee
 exactly-once, because exactly-once delivery over an unreliable network is not a thing you can buy.
@@ -11,6 +15,12 @@ exactly-once, because exactly-once delivery over an unreliable network is not a 
 That single property decides the entire shape of a correct receiver. If the same event can arrive
 twice — and it will — then handling it twice must produce the same result as handling it once.
 Everything below is a consequence of that.
+
+## Key Takeaways
+
+- Signature verification must strictly read the raw HTTP request body prior to any JSON decoding or middleware mutation.
+- Enforce deduplication at the database level using a composite unique index on `['provider', 'event_id']`.
+- Store the event and return a 204 immediately; process heavy billing logic asynchronously in idempotent queued jobs.
 
 ## Why duplicates happen even when nothing is broken
 
@@ -59,7 +69,7 @@ public function handle(Request $request): Response
 }
 ```
 
-Three things are doing real work there.
+Three things are doing real work there:
 
 **Signature verification uses the raw body.** Not the parsed array. Laravel's JSON decoding is not
 byte-identical to what was signed, so re-encoding invalidates the signature. Make sure no
@@ -115,7 +125,7 @@ Marking processed inside the same transaction as the work is the point. Commit b
 Marking it before the work means a crash loses the event permanently; marking it after, outside a
 transaction, means a crash between them replays it.
 
-Prefer operations that are naturally idempotent. `updateOrCreate` over `create`. Setting a state
+Prefer operations that are naturally idempotent: `updateOrCreate` over `create`. Setting a state
 to a value over incrementing a counter. `$user->subscription->update(['status' => $event->status])`
 is safe at any multiplicity; `$user->increment('credits', 100)` is not.
 
@@ -136,6 +146,32 @@ Or re-fetch current state from the API instead of trusting the payload, and trea
 a signal that *something* changed rather than as the change itself. That costs an API call and
 removes a whole category of ordering bug — usually a good trade.
 
+## Automated testing for webhook idempotency
+
+Writing a test is how you prove your receiver drops duplicate deliveries without failing:
+
+```php
+it('handles a duplicate webhook once', function () {
+    Queue::fake();
+    $payload = stripeEventPayload('invoice.paid'); // fixture payload
+    $headers = signedStripeHeaders($payload);      // helper building Stripe-Signature
+
+    // Simulate sending the exact same webhook delivery twice
+    $this->call('POST', '/webhooks/stripe', [], [], [], $headers, $payload)->assertNoContent();
+    $this->call('POST', '/webhooks/stripe', [], [], [], $headers, $payload)->assertNoContent();
+
+    // Verify only a single job was dispatched and one record created
+    Queue::assertPushed(ProcessWebhookEvent::class, 1);
+    expect(WebhookEvent::count())->toBe(1);
+});
+```
+
+## Using a package or building custom?
+
+Laravel Cashier and Spatie's `spatie/laravel-webhook-client` both implement parts of this workflow. Cashier handles standard Stripe subscription webhooks automatically, while Spatie's package provides generic webhook verification, durable storage, and queue dispatching for multiple providers.
+
+Building your own receiver is still preferred when you require custom audit retention schemas, specific replay tooling, complex multi-tenant routing, or fine-grained event-ordering logic before passing payloads to downstream handlers.
+
 ## Keep the raw payloads
 
 Store the full body and never delete it on a short schedule. When a customer disputes what
@@ -143,16 +179,25 @@ happened, the recorded sequence of provider events is the only account that both
 Retention of a few months costs almost nothing and has settled more arguments than any log line
 I have written.
 
+## Frequently Asked Questions
 
-## Related articles
+### Does Stripe send the same webhook more than once?
+Yes. Stripe guarantees at-least-once delivery. If your endpoint takes longer than Stripe's timeout (typically 20-30 seconds), experiences a network hiccup, or returns a 5xx status code, Stripe will retry sending the exact same webhook event multiple times over several days.
 
-- [Stripe Connect with Laravel: Platform Payments Guide](/blog/stripe-connect-laravel-platform-payments)
-- [Stripe Subscription Webhooks in Laravel: Source of Truth](/blog/stripe-subscription-webhooks-laravel)
-- [Laravel Stripe Subscription Plan Changes and Proration](/blog/laravel-subscription-billing-proration-plan-changes)
-- [ROI LevelUp: Laravel Multi-Company SaaS Case Study](/work/roi-saas-business-management-platform)
-- [TrackPilot AI: Laravel Time-Tracking SaaS Case Study](/work/trackpilot-ai-remote-work-time-tracking)
-- [Laravel Queues in Production: Retries, Backoff, Failures](/blog/laravel-queues-production-retries-backoff)
+### Why does Stripe signature verification fail in Laravel?
+Stripe generates its signature using HMAC-SHA256 computed on the exact raw string body of the incoming HTTP request. In Laravel, if middleware modifies the body, or if you verify against a re-encoded JSON array, the character sequence differs and the signature check fails. Always verify against `$request->getContent()`.
+
+### How do I stop a webhook from processing twice in Laravel?
+Record the incoming `event.id` from Stripe inside a dedicated database table with a unique constraint. If an incoming event ID already exists, acknowledge with HTTP 200/204 immediately and skip dispatching the processing job.
+
+## Related guides & articles
+
+- [Stripe in Laravel Guide: Connect, Subscriptions & Webhooks](/blog/stripe-laravel-guide)
+- [Stripe Connect with Laravel: Destination vs Direct Charges](/blog/stripe-connect-laravel-platform-payments)
+- [Laravel Stripe Subscription Webhooks: Keep State in Sync](/blog/stripe-subscription-webhooks-laravel)
+- [Laravel Queue Retries, Backoff & Timeouts in Production](/blog/laravel-queues-production-retries-backoff)
+- [ROI LevelUp: Multi-Company Laravel SaaS Case Study](/work/roi-saas-business-management-platform)
 
 ---
 
-*Need a backend built right? [Hire me for remote Laravel roles](/about).*
+*Need a resilient payment or webhook pipeline built? [Hire me for remote Laravel roles](/about).*

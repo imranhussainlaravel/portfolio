@@ -1,7 +1,9 @@
 ---
-title: "Every third-party API will be down during your demo"
-summary: "Every third-party API will be down at the worst moment. Timeouts, retries and fallbacks for resilient Laravel integrations."
+title: "Laravel third-party API integration: every API will be down during your demo"
+seoTitle: "Laravel Third-Party API Integration: Retries & Timeouts"
+summary: "Make Laravel third-party API integrations survive outages: timeouts, retries with backoff, fallbacks and failure handling."
 publishedAt: "2025-10-30"
+dateModified: "2026-11-20"
 tag: "Laravel"
 ---
 
@@ -11,6 +13,12 @@ fix, and will not be warned about.
 
 The goal is not to prevent outages. It is to make sure one vendor's bad hour degrades one feature
 instead of taking down your application.
+
+## Key Takeaways
+
+- Explicitly set `connectTimeout` and `timeout` on every request; the 30-second default will exhaust PHP-FPM pools during outages.
+- Never blindly retry non-idempotent operations without passing a stable `Idempotency-Key` header.
+- Implement a Redis-backed circuit breaker to fail fast and stop hammering struggling third-party endpoints.
 
 ## Set a timeout, because the default will not save you
 
@@ -37,7 +45,7 @@ Http::retry(3, 200, throw: false)
     ->post($url, $payload);
 ```
 
-Two things to be careful about.
+Two things to be careful about:
 
 **Retrying a non-idempotent write creates duplicates.** If the request timed out, you do not know
 whether it was processed. Retrying "charge this card" can charge twice. Only retry when the
@@ -101,12 +109,9 @@ resets or re-opens. Crude, and enough to prevent a struggling vendor from consum
 
 This is the design question, and it is not the same answer everywhere:
 
-- **Non-essential enrichment** — swallow it. If a currency rate lookup fails, use yesterday's and
-  carry on. Log it, do not surface it.
-- **Deferrable work** — queue it. An SMS that sends four minutes late is fine; failing the
-  registration that triggered it is not.
-- **Genuinely blocking** — fail clearly. If payment authorization is down, say so plainly. Do not
-  pretend to succeed.
+- **Non-essential enrichment** — swallow it. If a currency rate lookup fails, use yesterday's and carry on. Log it, do not surface it.
+- **Deferrable work** — queue it. An SMS that sends four minutes late is fine; failing the registration that triggered it is not.
+- **Genuinely blocking** — fail clearly. If payment authorization is down, say so plainly. Do not pretend to succeed.
 
 The failure mode to avoid is letting an exception from a peripheral service bubble into a 500 on
 a page whose main job had nothing to do with it.
@@ -141,10 +146,11 @@ decide whether to act on it.
 When a vendor says the problem is on your end, you need the exchange:
 
 ```php
-Http::withMiddleware(...)  // or a simple wrapper
 Log::channel('integrations')->info('vendor call', [
-    'service' => $service, 'status' => $response->status(),
-    'duration_ms' => $ms, 'request_id' => $response->header('X-Request-Id'),
+    'service' => $service,
+    'status' => $response->status(),
+    'duration_ms' => $ms,
+    'request_id' => $response->header('X-Request-Id'),
 ]);
 ```
 
@@ -152,7 +158,24 @@ Capture their request id above all. It is the one token that lets a vendor's sup
 your specific call in their systems, and every conversation goes faster when you can supply it.
 Never log the request body for anything carrying credentials or card data.
 
+## Frequently Asked Questions
+
+### What is the default timeout in Laravel's HTTP client?
+Laravel's `Http` client defaults to a 30-second timeout. In production web requests, this default is dangerously high: a single stalled third-party API can hold open PHP-FPM worker processes until your server exhausts its maximum worker capacity. Always configure explicit `timeout` and `connectTimeout` values.
+
+### How should I handle third-party rate limits (HTTP 429) in Laravel?
+When an external service returns HTTP 429, check for a `Retry-After` header. If present, pass that value to your retry logic or queue worker delay. Avoid retrying 429 responses with immediate loops, as this will trigger severe IP bans from the remote provider.
+
+### When should I implement a circuit breaker for external APIs?
+Implement a circuit breaker when multiple web requests synchronously call the same external API. If that service fails repeatedly, a circuit breaker trips open, immediately returning fallbacks or cached state without waiting for multi-second connection timeouts on every inbound request.
+
+## Related guides & articles
+
+- [Laravel Production Reliability: Queues, APIs & Resilience](/blog/laravel-production-reliability-guide)
+- [Laravel Queue Retries, Backoff & Timeouts in Production](/blog/laravel-queues-production-retries-backoff)
+- [Idempotent Webhook Handling in Laravel (Stripe Example)](/blog/idempotent-webhook-handling-laravel)
+- [TrackPilot AI: Laravel Time-Tracking SaaS Case Study](/work/trackpilot-ai-remote-work-time-tracking)
 
 ---
 
-*Need a backend built right? [Hire me for remote Laravel roles](/about).*
+*Need to build resilient third-party integrations? [Hire me for remote Laravel roles](/about).*

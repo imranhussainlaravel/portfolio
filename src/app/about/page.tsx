@@ -21,10 +21,13 @@ import React from "react";
 import type { Metadata } from "next";
 
 export async function generateMetadata(): Promise<Metadata> {
-  const title = "About Imran Hussain | Laravel Engineer in Lahore";
-  const description = "Imran Hussain is a Laravel & PHP engineer in Lahore with 3+ years at Applicon Soft, building SaaS platforms, REST APIs and Stripe Connect billing.";
+  const title = "About Imran Hussain | Software Engineer, Laravel & PHP, Lahore";
+  const description =
+    "Imran Hussain is a Laravel and PHP software engineer in Lahore with 3+ years at Applicon Soft: SaaS backends, REST APIs, Stripe Connect, React and Next.js.";
   return {
-    title,
+    title: {
+      absolute: title,
+    },
     description,
     alternates: {
       canonical: "https://imranhussainportfolio.com/about",
@@ -159,15 +162,15 @@ export default function About() {
                 />
               </Row>
             )}
-            <Heading className={styles.textAlign} variant="display-strong-xl">
-              {person.name}
+            <Heading as="h1" className={styles.textAlign} variant="display-strong-xl">
+              Imran Hussain, Software Engineer (Laravel &amp; PHP) in Lahore
             </Heading>
             <Text
               className={styles.textAlign}
               variant="display-default-xs"
               onBackground="neutral-weak"
             >
-              Laravel & PHP Full-Stack Engineer in Lahore, Pakistan
+              Full-Stack Engineer &middot; Laravel &amp; PHP Backend Specialist
             </Text>
             {social.length > 0 && (
               <Row

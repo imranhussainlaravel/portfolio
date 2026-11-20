@@ -1,13 +1,21 @@
 ---
-title: "Your multi-tenant indexes are in the wrong order"
-summary: "Why column order matters in MySQL composite indexes for multi-tenant Laravel apps, and how to design indexes that match your queries."
+title: "Your Laravel multi-tenant MySQL indexes are in the wrong order"
+seoTitle: "MySQL Composite Index Order for Multi-Tenant Laravel Apps"
+summary: "Why tenant_id goes first in MySQL composite indexes for Laravel SaaS: leftmost prefix, EXPLAIN, covering and redundant indexes."
 publishedAt: "2026-04-14"
+dateModified: "2026-11-20"
 tag: "MySQL"
 ---
 
 In a single-database SaaS, essentially every query has `where tenant_id = ?` on it, added by a
 global scope you may not even see in the code. That one fact should change how you index, and
 usually doesn't, because the scope is invisible at the call site.
+
+## Key Takeaways
+
+- `tenant_id` must be the first (leftmost) column in composite indexes on multi-tenant tables.
+- Order subsequent columns by equalities first, then one range condition, followed by `ORDER BY` columns.
+- Use `EXPLAIN ANALYZE` on MySQL 8 to inspect actual row counts and execution timings, not just optimizer estimates.
 
 ## The leftmost prefix rule, and why it decides everything
 
@@ -21,6 +29,17 @@ columns as `(tenant_id, status)` serve both `where tenant_id` and `where tenant_
 
 Rule of thumb that holds up: **`tenant_id` goes first in almost every index on a tenant-owned
 table.** Not because of cardinality — because it is the one predicate present in every query.
+
+In a Laravel migration, express this using the blueprint index method:
+
+```php
+Schema::table('tasks', function (Blueprint $table) {
+    $table->index(
+        ['tenant_id', 'project_id', 'created_at'],
+        'tasks_tenant_project_created_idx'
+    );
+});
+```
 
 ## Then order by what the query does next
 
@@ -46,9 +65,9 @@ Reverse the last two into `(tenant_id, created_at, project_id)` and the range on
 ends index usability; `project_id` gets filtered row by row and the sort may need a filesort. Same
 columns, same storage, very different plan.
 
-## Reading the plan
+## Reading the execution plan
 
-`EXPLAIN` tells you plainly:
+`EXPLAIN` tells you plainly how MySQL plans to resolve your query:
 
 ```sql
 explain select ...;
@@ -60,10 +79,9 @@ explain select ...;
 - `Extra: Using filesort` — sorting in memory or on disk because the index did not provide order.
 - `Extra: Using temporary` — materialising a temp table, usually with `GROUP BY`.
 
-`rows` is an estimate of rows *examined*. When that number is thousands and `LIMIT` is 50, the
-index is not doing the work you think.
+On MySQL 8.0.18+, run `EXPLAIN ANALYZE select ...;`. Unlike standard `EXPLAIN`, which only presents the optimizer's estimated cost, `EXPLAIN ANALYZE` actually executes the query and records exact timings and actual row counts at each step of the plan tree.
 
-In Laravel, get the SQL out without guessing:
+In Laravel, inspect the exact SQL your scopes and query builder produce:
 
 ```php
 DB::listen(fn ($q) => logger($q->sql, $q->bindings));
@@ -119,13 +137,26 @@ Not `$table->unique('slug')`. Getting this wrong produces the worst kind of bug 
 tenant's data creation failing because of a value they cannot see, belonging to a tenant they do
 not know exists.
 
+## Frequently Asked Questions
 
-## Related articles
+### Should tenant_id be the first column in a composite index?
+Yes. Under MySQL's leftmost prefix rule, queries cannot utilize an index unless the leading column is present in the query predicates. Because single-database multi-tenant applications attach `where tenant_id = ?` to virtually every read, placing `tenant_id` first allows the index to serve broad queries as well as specific filtered lookups.
 
-- [Laravel Multi-Tenant Scoping: Queries Global Scopes Miss](/blog/laravel-multi-tenant-tenant-scoping)
-- [Roles vs Permissions in Multi-Company Laravel SaaS](/blog/role-based-permissions-multi-company-saas)
-- [ROI LevelUp: Laravel Multi-Company SaaS Case Study](/work/roi-saas-business-management-platform)
+### Does column order matter in a MySQL composite index?
+Extremely. Indexes evaluate columns strictly from left to right. When a query encounters a range comparison (such as `>`, `<`, or `BETWEEN`), MySQL cannot use subsequent index columns for filtering or sorting. Always position equality filters first, range filters second, and sorting columns last.
+
+### Should unique indexes include tenant_id?
+Yes. Tables scoped to a tenant (such as user accounts within a team, invoice numbers, or product SKUs) must allow duplicate values across separate tenants. Defining `$table->unique(['tenant_id', 'slug'])` ensures uniqueness per tenant while avoiding global collision errors.
+
+## Related guides & articles
+
+- [Laravel Multi-Tenant SaaS Architecture: The Complete Guide](/blog/laravel-multi-tenant-saas)
+- [Laravel Multi-Tenant Global Scope: 5 Queries It Misses](/blog/laravel-multi-tenant-tenant-scoping)
+- [Laravel REST API Design for React: Resources & Pagination](/blog/laravel-rest-api-design-for-react-frontends)
+- [Laravel Roles vs Permissions in Multi-Company SaaS](/blog/role-based-permissions-multi-company-saas)
+- [ZaadDOCS: Laravel POS & Financial System Case Study](/work/zaaddocs-pos-financial-management-system)
+- [ROI LevelUp: Multi-Company Laravel SaaS Case Study](/work/roi-saas-business-management-platform)
 
 ---
 
-*Need a backend built right? [Hire me for remote Laravel roles](/about).*
+*Need to optimize database performance or multi-tenant queries? [Hire me for remote Laravel roles](/about).*
