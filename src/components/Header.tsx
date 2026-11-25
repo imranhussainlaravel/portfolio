@@ -82,7 +82,7 @@ export const Header = () => {
             </Text>
           </SmartLink>
           {display.location && (
-            <Row hide m={{ hide: false }} aria-hidden="true">
+            <Row hide m={{ hide: false }}>
               <Text variant="body-default-s" onBackground="neutral-weak">
                 {person.location}
               </Text>
@@ -105,40 +105,80 @@ export const Header = () => {
               )}
               <Line background="neutral-alpha-medium" vert maxHeight="24" />
               {routes["/about"] && (
-                <ToggleButton
-                  className={styles.navButton}
-                  prefixIcon="person"
-                  href="/about"
-                  label={about.label}
-                  selected={pathname === "/about"}
-                />
+                <>
+                  <Row s={{ hide: true }}>
+                    <ToggleButton
+                      prefixIcon="person"
+                      href="/about"
+                      label={about.label}
+                      selected={pathname === "/about"}
+                    />
+                  </Row>
+                  <Row hide s={{ hide: false }}>
+                    <ToggleButton
+                      prefixIcon="person"
+                      href="/about"
+                      selected={pathname === "/about"}
+                    />
+                  </Row>
+                </>
               )}
               {routes["/work"] && (
-                <ToggleButton
-                  className={styles.navButton}
-                  prefixIcon="grid"
-                  href="/work"
-                  label={work.label}
-                  selected={pathname.startsWith("/work")}
-                />
+                <>
+                  <Row s={{ hide: true }}>
+                    <ToggleButton
+                      prefixIcon="grid"
+                      href="/work"
+                      label={work.label}
+                      selected={pathname.startsWith("/work")}
+                    />
+                  </Row>
+                  <Row hide s={{ hide: false }}>
+                    <ToggleButton
+                      prefixIcon="grid"
+                      href="/work"
+                      selected={pathname.startsWith("/work")}
+                    />
+                  </Row>
+                </>
               )}
               {routes["/blog"] && (
-                <ToggleButton
-                  className={styles.navButton}
-                  prefixIcon="book"
-                  href="/blog"
-                  label={blog.label}
-                  selected={pathname.startsWith("/blog")}
-                />
+                <>
+                  <Row s={{ hide: true }}>
+                    <ToggleButton
+                      prefixIcon="book"
+                      href="/blog"
+                      label={blog.label}
+                      selected={pathname.startsWith("/blog")}
+                    />
+                  </Row>
+                  <Row hide s={{ hide: false }}>
+                    <ToggleButton
+                      prefixIcon="book"
+                      href="/blog"
+                      selected={pathname.startsWith("/blog")}
+                    />
+                  </Row>
+                </>
               )}
               {routes["/gallery"] && (
-                <ToggleButton
-                  className={styles.navButton}
-                  prefixIcon="gallery"
-                  href="/gallery"
-                  label={gallery.label}
-                  selected={pathname.startsWith("/gallery")}
-                />
+                <>
+                  <Row s={{ hide: true }}>
+                    <ToggleButton
+                      prefixIcon="gallery"
+                      href="/gallery"
+                      label={gallery.label}
+                      selected={pathname.startsWith("/gallery")}
+                    />
+                  </Row>
+                  <Row hide s={{ hide: false }}>
+                    <ToggleButton
+                      prefixIcon="gallery"
+                      href="/gallery"
+                      selected={pathname.startsWith("/gallery")}
+                    />
+                  </Row>
+                </>
               )}
               {display.themeSwitcher && (
                 <>
@@ -157,7 +197,7 @@ export const Header = () => {
             textVariant="body-default-s"
             gap="20"
           >
-            <Flex s={{ hide: true }} aria-hidden="true">
+            <Flex s={{ hide: true }}>
               {display.time && <TimeDisplay timeZone={person.location} />}
             </Flex>
           </Flex>

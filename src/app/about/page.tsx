@@ -86,16 +86,7 @@ export default function About() {
         }}
       />
       {about.tableOfContent.display && (
-        <Column
-          left="0"
-          style={{ top: "50%", transform: "translateY(-50%)" }}
-          position="fixed"
-          paddingLeft="24"
-          gap="32"
-          s={{ hide: true }}
-        >
-          <TableOfContents structure={structure} about={about} />
-        </Column>
+        <TableOfContents structure={structure} about={about} />
       )}
       <Row fillWidth s={{ direction: "column"}} horizontal="center">
         {about.avatar.display && (
@@ -163,7 +154,8 @@ export default function About() {
               </Row>
             )}
             <Heading as="h1" className={styles.textAlign} variant="display-strong-xl">
-              Imran Hussain, Software Engineer (Laravel &amp; PHP) in Lahore
+              Imran Hussain, <span style={{ whiteSpace: "nowrap" }}>Software Engineer</span>{" "}
+              <span style={{ whiteSpace: "nowrap" }}>(Laravel &amp; PHP)</span> in Lahore
             </Heading>
             <Text
               className={styles.textAlign}
