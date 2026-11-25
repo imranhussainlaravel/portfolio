@@ -48,6 +48,29 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
+const faqs = [
+  {
+    question: "Is Imran available for remote Laravel roles?",
+    answer:
+      "Yes. I am based in Lahore, Pakistan (UTC+5) and available for full-time or contract remote roles with teams across the US, UK, and Europe, providing 4-6 hours of daily timezone overlap.",
+  },
+  {
+    question: "What does Imran specialize in?",
+    answer:
+      "My primary specialization is backend architecture using Laravel and PHP: multi-tenant SaaS systems, high-volume REST APIs, asynchronous queue pipelines, and reliable webhook handlers.",
+  },
+  {
+    question: "Which payment systems has Imran integrated?",
+    answer:
+      "I have deep production experience with Stripe and Stripe Connect, including marketplace split payments, recurring subscription lifecycles, proration logic, and idempotent webhook processing.",
+  },
+  {
+    question: "What is Imran's experience with frontend technologies?",
+    answer:
+      "While backend-focused, I regularly build full-stack interfaces and client dashboards using React, Next.js, and TypeScript, delivering polished, responsive applications end-to-end.",
+  },
+];
+
 export default function Home() {
   return (
     <Column maxWidth="m" gap="xl" paddingY="12" horizontal="center">
@@ -82,6 +105,17 @@ export default function Home() {
               "@id": "https://imranhussainportfolio.com/#website",
               name: home.title,
               url: baseURL
+            },
+            {
+              "@type": "FAQPage",
+              mainEntity: faqs.map((faq) => ({
+                "@type": "Question",
+                name: faq.question,
+                acceptedAnswer: {
+                  "@type": "Answer",
+                  text: faq.answer,
+                },
+              })),
             }
           ]
         }}
@@ -174,6 +208,211 @@ export default function Home() {
         </Column>
       )}
       <Projects range={[4]} />
+
+      {/* Section: What I do */}
+      <Column fillWidth gap="24" paddingX="16" marginTop="32">
+        <Row fillWidth horizontal="between" vertical="center">
+          <Heading as="h2" variant="display-strong-xs">
+            What I do
+          </Heading>
+          <Line maxWidth={48} />
+        </Row>
+        <Row fillWidth gap="16" s={{ direction: "column" }}>
+          <Column
+            flex={1}
+            gap="8"
+            padding="20"
+            radius="l"
+            background="surface"
+            border="neutral-alpha-weak"
+          >
+            <Text variant="heading-strong-s" onBackground="neutral-strong">
+              Backend &amp; API Architecture
+            </Text>
+            <Text variant="body-default-s" onBackground="neutral-weak">
+              Robust, maintainable REST APIs and backend services using Laravel and PHP. Strict typing, domain-driven organization, Eloquent optimization, and comprehensive automated test suites.
+            </Text>
+          </Column>
+          <Column
+            flex={1}
+            gap="8"
+            padding="20"
+            radius="l"
+            background="surface"
+            border="neutral-alpha-weak"
+          >
+            <Text variant="heading-strong-s" onBackground="neutral-strong">
+              SaaS Billing &amp; Stripe Connect
+            </Text>
+            <Text variant="body-default-s" onBackground="neutral-weak">
+              End-to-end payment workflows: multi-party split payouts with Stripe Connect, subscription billing with trial/proration lifecycles, and bulletproof webhook handling.
+            </Text>
+          </Column>
+        </Row>
+        <Row fillWidth gap="16" s={{ direction: "column" }}>
+          <Column
+            flex={1}
+            gap="8"
+            padding="20"
+            radius="l"
+            background="surface"
+            border="neutral-alpha-weak"
+          >
+            <Text variant="heading-strong-s" onBackground="neutral-strong">
+              Queues &amp; Webhooks
+            </Text>
+            <Text variant="body-default-s" onBackground="neutral-weak">
+              Asynchronous job processing with Redis, event-driven pipelines, exponential backoff retries, dead-letter monitoring, and cryptographic webhook signature verification.
+            </Text>
+          </Column>
+          <Column
+            flex={1}
+            gap="8"
+            padding="20"
+            radius="l"
+            background="surface"
+            border="neutral-alpha-weak"
+          >
+            <Text variant="heading-strong-s" onBackground="neutral-strong">
+              React &amp; Next.js Dashboards
+            </Text>
+            <Text variant="body-default-s" onBackground="neutral-weak">
+              High-performance client frontends and administrative portals built with React, Next.js, and TypeScript, engineered to consume production Laravel APIs cleanly.
+            </Text>
+          </Column>
+        </Row>
+      </Column>
+
+      {/* Section: Technologies */}
+      <Column fillWidth gap="20" paddingX="16" marginTop="32">
+        <Row fillWidth horizontal="between" vertical="center">
+          <Heading as="h2" variant="display-strong-xs">
+            Technologies
+          </Heading>
+          <Line maxWidth={48} />
+        </Row>
+        <Column
+          fillWidth
+          gap="16"
+          padding="24"
+          radius="l"
+          background="surface"
+          border="neutral-alpha-weak"
+        >
+          <Row fillWidth gap="16" s={{ direction: "column" }}>
+            <Column flex={1} gap="4">
+              <Text variant="label-strong-s" onBackground="brand-strong">Backend</Text>
+              <Text variant="body-default-s" onBackground="neutral-medium">
+                PHP 8+, Laravel, Eloquent ORM, RESTful API Design, MVC Architecture
+              </Text>
+            </Column>
+            <Column flex={1} gap="4">
+              <Text variant="label-strong-s" onBackground="brand-strong">Databases &amp; Cache</Text>
+              <Text variant="body-default-s" onBackground="neutral-medium">
+                MySQL, PostgreSQL, Redis, Query Optimization, Database Indexing
+              </Text>
+            </Column>
+          </Row>
+          <Line background="neutral-alpha-weak" />
+          <Row fillWidth gap="16" s={{ direction: "column" }}>
+            <Column flex={1} gap="4">
+              <Text variant="label-strong-s" onBackground="brand-strong">Payments &amp; Billing</Text>
+              <Text variant="body-default-s" onBackground="neutral-medium">
+                Stripe, Stripe Connect, Webhooks, Subscription Lifecycles, POS Systems
+              </Text>
+            </Column>
+            <Column flex={1} gap="4">
+              <Text variant="label-strong-s" onBackground="brand-strong">Frontend</Text>
+              <Text variant="body-default-s" onBackground="neutral-medium">
+                React, Next.js, TypeScript, JavaScript (ES6+), HTML5/CSS3, Tailwind CSS
+              </Text>
+            </Column>
+          </Row>
+          <Line background="neutral-alpha-weak" />
+          <Row fillWidth gap="16" s={{ direction: "column" }}>
+            <Column flex={1} gap="4">
+              <Text variant="label-strong-s" onBackground="brand-strong">DevOps &amp; Tooling</Text>
+              <Text variant="body-default-s" onBackground="neutral-medium">
+                Git, GitHub, Docker, Postman, Linux/Nginx, CI/CD, PHPUnit, Laravel Pint
+              </Text>
+            </Column>
+          </Row>
+        </Column>
+      </Column>
+
+      {/* Section: Experience */}
+      <Column fillWidth gap="20" paddingX="16" marginTop="32">
+        <Row fillWidth horizontal="between" vertical="center">
+          <Heading as="h2" variant="display-strong-xs">
+            Experience
+          </Heading>
+          <Line maxWidth={48} />
+        </Row>
+        <Column
+          fillWidth
+          gap="16"
+          padding="24"
+          radius="l"
+          background="surface"
+          border="neutral-alpha-weak"
+        >
+          <Row fillWidth horizontal="between" vertical="center" wrap gap="8">
+            <Column gap="4">
+              <Text variant="heading-strong-s" onBackground="neutral-strong">
+                Software Engineer · Applicon Soft
+              </Text>
+              <Text variant="body-default-xs" onBackground="neutral-weak">
+                Lahore, Pakistan · Full-time
+              </Text>
+            </Column>
+            <Badge background="brand-alpha-weak" textVariant="label-default-xs">
+              Apr 2024 – Present
+            </Badge>
+          </Row>
+          <Column gap="8" marginTop="8">
+            <Text variant="body-default-s" onBackground="neutral-medium">
+              • Architected and shipped production Laravel SaaS platforms and REST APIs powering high-traffic web applications and mobile clients.
+            </Text>
+            <Text variant="body-default-s" onBackground="neutral-medium">
+              • Engineered multi-party marketplace payments and automated subscription billing via Stripe Connect with idempotent webhook handling.
+            </Text>
+            <Text variant="body-default-s" onBackground="neutral-medium">
+              • Optimized MySQL schemas, composite indexes, and Redis queue workers to sustain high write volumes with sub-second API response times.
+            </Text>
+          </Column>
+        </Column>
+      </Column>
+
+      {/* Section: Frequently Asked Questions */}
+      <Column fillWidth gap="20" paddingX="16" marginTop="32">
+        <Row fillWidth horizontal="between" vertical="center">
+          <Heading as="h2" variant="display-strong-xs">
+            Frequently Asked Questions
+          </Heading>
+          <Line maxWidth={48} />
+        </Row>
+        <Column fillWidth gap="12">
+          {faqs.map((faq, idx) => (
+            <Column
+              key={idx}
+              fillWidth
+              gap="8"
+              padding="20"
+              radius="l"
+              background="surface"
+              border="neutral-alpha-weak"
+            >
+              <Text variant="heading-strong-xs" onBackground="neutral-strong">
+                {faq.question}
+              </Text>
+              <Text variant="body-default-s" onBackground="neutral-weak">
+                {faq.answer}
+              </Text>
+            </Column>
+          ))}
+        </Column>
+      </Column>
+
       <Mailchimp />
     </Column>
   );
