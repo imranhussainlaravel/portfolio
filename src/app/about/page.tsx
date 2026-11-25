@@ -105,10 +105,6 @@ export default function About() {
             horizontal="center"
           >
             <Avatar src={person.avatar} size="xl" />
-            <Row gap="8" vertical="center">
-              <Icon onBackground="accent-weak" name="globe" />
-              {person.location}
-            </Row>
             {person.languages && person.languages.length > 0 && (
               <Row wrap gap="8">
                 {person.languages.map((language, index) => (
@@ -154,8 +150,7 @@ export default function About() {
               </Row>
             )}
             <Heading as="h1" className={styles.textAlign} variant="display-strong-xl">
-              Imran Hussain, <span style={{ whiteSpace: "nowrap" }}>Software Engineer</span>{" "}
-              <span style={{ whiteSpace: "nowrap" }}>(Laravel &amp; PHP)</span> in Lahore
+              {person.name}
             </Heading>
             <Text
               className={styles.textAlign}
