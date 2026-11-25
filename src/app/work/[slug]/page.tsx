@@ -174,20 +174,20 @@ export default async function Project({
           wrap
           horizontal="between"
         >
-          <Column gap="4" minWidth="120">
+          <Column gap="4" minWidth={120}>
             <Text variant="label-default-xs" onBackground="neutral-weak">Role</Text>
             <Text variant="body-default-s" onBackground="neutral-strong">Backend / Full-Stack Engineer</Text>
           </Column>
-          <Column gap="4" minWidth="120">
+          <Column gap="4" minWidth={120}>
             <Text variant="label-default-xs" onBackground="neutral-weak">Stack</Text>
             <Text variant="body-default-s" onBackground="neutral-strong">Laravel · PHP · MySQL · APIs</Text>
           </Column>
-          <Column gap="4" minWidth="100">
+          <Column gap="4" minWidth={100}>
             <Text variant="label-default-xs" onBackground="neutral-weak">Type</Text>
             <Text variant="body-default-s" onBackground="neutral-strong">{post.metadata.tag || "Production SaaS"}</Text>
           </Column>
           {post.metadata.link && (
-            <Column gap="4" minWidth="100">
+            <Column gap="4" minWidth={100}>
               <Text variant="label-default-xs" onBackground="neutral-weak">Live Project</Text>
               <SmartLink href={post.metadata.link} target="_blank" rel="noopener noreferrer">
                 <Text variant="body-default-s" onBackground="brand-strong">Visit Site ↗</Text>
